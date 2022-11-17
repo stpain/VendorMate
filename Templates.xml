@@ -1,0 +1,473 @@
+<Ui>
+
+    <Frame name="VendorMateGridviewItemListviewItemTemplate" mixin="VendorMateGridviewItemListviewItemMixin" enableMouse="true" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString parentKey="text" inherits="GameFontNormalSmall"/>
+            </Layer>
+            <Layer level="HIGHLIGHT">
+                <Texture>
+                    <Color r="0.5" g="0.5" b="0.5" a="0.25"/>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Animations>
+            <AnimationGroup parentKey="show" setToFinalAlpha="true">
+                <Alpha duration="0.2" fromAlpha="0" toAlpha="1"/>
+                <Scale duration="0.2" fromScaleX="1" fromScaleY="1" toScaleX="300" toScaleY="300">
+                    <Origin point="TOPLEFT" x="0" y="0"/>
+                </Scale>
+            </AnimationGroup>
+            <AnimationGroup parentKey="fade" setToFinalAlpha="true">
+                <Alpha duration="0.66" fromAlpha="1" toAlpha="0"/>
+            </AnimationGroup>
+        </Animations>
+    </Frame>
+
+    <Button name="VendorMateFilterDropdownMenuCircleButton" virtual="true">
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture atlas="AdventureMapQuest-PortraitBG" alpha="0.85"/>
+            </Layer>
+            <Layer level="BORDER">
+                <Texture parentKey="selected" atlas="Relic-Rankselected-circle" hidden="true">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="-3" y="3"/>
+                        <Anchor point="BOTTOMRIGHT" x="3" y="-3"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="HIGHLIGHT">
+                <Texture atlas="heartofazeroth-slot-yellowglow">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="-1" y="1"/>
+                        <Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="ARTWORK">
+                <Texture parentKey="icon">
+
+                </Texture>
+                <MaskTexture parentKey="iconMask" file="Interface/CHARACTERFRAME/TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="1" y="-1"/>
+                        <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+                    </Anchors>
+                    <MaskedTextures>
+                        <MaskedTexture childKey="icon"/>
+                    </MaskedTextures>
+                </MaskTexture>
+            </Layer>
+
+        </Layers>
+    </Button>
+
+    <Frame name="VendorMateFilterDropDownMenu" mixin="VendorMateFilterDropDownMenuMixin" parent="UIParent" frameStrata="DIALOG" enableMouse="true">
+        <Size x="200" y="380"/>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="6" y="-6"/>
+                        <Anchor point="BOTTOMRIGHT" x="-6" y="6"/>
+                    </Anchors>
+                    <Color r="0.003" g="0.028" b="0.034" a="0.96"/>
+                </Texture>
+            </Layer>
+            <Layer level="BORDER">
+                <Texture parentKey="borderBL" atlas="UI-Frame-DiamondMetal-CornerBottomLeft" useAtlasSize="true">
+                    <Anchors>
+                        <Anchor point="BOTTOMLEFT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="borderBR" atlas="UI-Frame-DiamondMetal-CornerBottomRight" useAtlasSize="true">
+                    <Anchors>
+                        <Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="borderTL" atlas="UI-Frame-DiamondMetal-CornerTopLeft" useAtlasSize="true">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="borderTR" atlas="UI-Frame-DiamondMetal-CornerTopRight" useAtlasSize="true">
+                    <Anchors>
+                        <Anchor point="TOPRIGHT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+
+                <Texture parentKey="borderBottom" atlas="_UI-Frame-DiamondMetal-EdgeBottom">
+                    <Anchors>
+                        <Anchor point="BOTTOMLEFT" relativeKey="$parent.borderBL" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                        <Anchor point="BOTTOMRIGHT" relativeKey="$parent.borderBR" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                        <Anchor point="TOPLEFT" relativeKey="$parent.borderBL" relativePoint="TOPRIGHT" x="0" y="0"/>
+                        <Anchor point="TOPRIGHT" relativeKey="$parent.borderBR" relativePoint="TOPLEFT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="borderTop" atlas="_UI-Frame-DiamondMetal-EdgeTop">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativeKey="$parent.borderTL" relativePoint="TOPRIGHT" x="0" y="0"/>
+                        <Anchor point="TOPRIGHT" relativeKey="$parent.borderTR" relativePoint="TOPLEFT" x="0" y="0"/>
+                        <Anchor point="BOTTOMLEFT" relativeKey="$parent.borderTL" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                        <Anchor point="BOTTOMRIGHT" relativeKey="$parent.borderTR" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+
+                <Texture parentKey="borderLeft" atlas="!UI-Frame-DiamondMetal-EdgeLeft">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativeKey="$parent.borderTL" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                        <Anchor point="BOTTOMLEFT" relativeKey="$parent.borderBL" relativePoint="TOPLEFT" x="0" y="0"/>
+                        <Anchor point="TOPRIGHT" relativeKey="$parent.borderTL" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                        <Anchor point="BOTTOMRIGHT" relativeKey="$parent.borderBL" relativePoint="TOPRIGHT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="borderBottom" atlas="!UI-Frame-DiamondMetal-EdgeRight">
+                    <Anchors>
+                        <Anchor point="TOPRIGHT" relativeKey="$parent.borderTR" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                        <Anchor point="BOTTOMRIGHT" relativeKey="$parent.borderBR" relativePoint="TOPRIGHT" x="0" y="0"/>
+                        <Anchor point="TOPLEFT" relativeKey="$parent.borderTR" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                        <Anchor point="BOTTOMLEFT" relativeKey="$parent.borderBR" relativePoint="TOPLEFT" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="ARTWORK">
+
+            </Layer>
+            <Layer level="OVERLAY">
+                <FontString parentKey="qualityHeader" inherits="GameFontNormal" text="Quality">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-8"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-8"/>
+                    </Anchors>
+                </FontString>
+                
+                <FontString parentKey="tierHeader" inherits="GameFontNormal" text="Tier">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-53"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-53"/>
+                    </Anchors>
+                </FontString>
+
+                <FontString parentKey="itemClassHeader" inherits="GameFontNormal" text="Item type">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-188"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-188"/>
+                    </Anchors>
+                </FontString>
+
+                <FontString parentKey="itemSubClassHeader" inherits="GameFontNormal" text="Item sub type">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-248"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-248"/>
+                    </Anchors>
+                </FontString>
+
+                <FontString parentKey="inventorySlotHeader" inherits="GameFontNormal" text="Inventory slot">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-308"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-308"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+
+        <Frames>
+            <Button parentKey="close" inherits="UIPanelCloseButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-10" y="-10"/>
+                </Anchors>
+            </Button>
+
+            <Button parentKey="quality4" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.qualityHeader" relativePoint="BOTTOM" x="0" y="-4"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality3" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.quality4" relativePoint="LEFT" x="-2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality2" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.quality3" relativePoint="LEFT" x="-2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality1" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.quality2" relativePoint="LEFT" x="-2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality0" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.quality1" relativePoint="LEFT" x="-2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality5" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.quality4" relativePoint="RIGHT" x="2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality6" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.quality5" relativePoint="RIGHT" x="2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality7" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.quality6" relativePoint="RIGHT" x="2" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="quality8" inherits="VendorMateFilterDropdownMenuCircleButton">
+                <Size x="16" y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.quality7" relativePoint="RIGHT" x="2" y="0"/>
+                </Anchors>
+            </Button>
+
+            <Button parentKey="tier3">
+                <Size x="18" y="18"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.tierHeader" relativePoint="BOTTOM" x="0" y="-4"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="tier2">
+                <Size x="18" y="18"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.tier3" relativePoint="LEFT" x="-10" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="tier1">
+                <Size x="18" y="18"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.tier2" relativePoint="LEFT" x="-10" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="tier4">
+                <Size x="18" y="18"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.tier3" relativePoint="RIGHT" x="10" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="tier5">
+                <Size x="18" y="18"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.tier4" relativePoint="RIGHT" x="10" y="0"/>
+                </Anchors>
+            </Button>
+
+            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMin" parentKey="minEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
+                <Size x="110" y="16"/>
+                <Anchors>
+                    <Anchor point="TOP" x="0" y="-120"/>
+                </Anchors>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <FontString parentKey="low" inherits="GameFontNormalSmall" text="1">
+                            <Color r="1" g="1" b="1"/>
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString parentKey="high" inherits="GameFontNormalSmall" text="500">
+                            <Color r="1" g="1" b="1"/>
+                            <Anchors>
+                                <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString parentKey="text" inherits="GameFontNormal" text="Min ilvl">
+                            <Anchors>
+                                <Anchor point="BOTTOM" relativePoint="TOP" x="0" y="2"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+            </Slider>
+            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMax" parentKey="maxEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
+                <Size x="110" y="16"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.minEffectiveIlvl" relativePoint="BOTTOM" x="0" y="-25"/>
+                </Anchors>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <FontString parentKey="low" inherits="GameFontNormalSmall" text="1">
+                            <Color r="1" g="1" b="1"/>
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString parentKey="high" inherits="GameFontNormalSmall" text="500">
+                            <Color r="1" g="1" b="1"/>
+                            <Anchors>
+                                <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString parentKey="text" inherits="GameFontNormal" text="Max ilvl">
+                            <Anchors>
+                                <Anchor point="BOTTOM" relativePoint="TOP" x="0" y="2"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+            </Slider>
+
+            <Button parentKey="classDropdown" inherits="VendorMateDropDownTemplate">
+                <Size x="140" y="38"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.itemClassHeader" relativePoint="BOTTOM" x="0" y="0"/>
+                </Anchors>
+            </Button>
+
+            <Button parentKey="subClassDropdown" inherits="VendorMateDropDownTemplate">
+                <Size x="140" y="38"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.itemSubClassHeader" relativePoint="BOTTOM" x="0" y="0"/>
+                </Anchors>
+            </Button>
+
+            <Button parentKey="inventorySlotDropdown" inherits="VendorMateDropDownTemplate">
+                <Size x="140" y="38"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.inventorySlotHeader" relativePoint="BOTTOM" x="0" y="0"/>
+                </Anchors>
+            </Button>
+        </Frames>
+
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+        </Scripts>
+    </Frame>
+
+    <Frame name="VendorMateVendorGridviewItemTemplate" mixin="VendorMateVendorGridviewItemMixin" enableMouse="true" virtual="true">
+        <Animations>
+            <AnimationGroup parentKey="show" setToFinalAlpha="true">
+                <Alpha duration="1.0" fromAlpha="0" toAlpha="1"/>
+            </AnimationGroup>
+            <AnimationGroup parentKey="fade" setToFinalAlpha="true">
+                <Alpha duration="1.0" fromAlpha="1" toAlpha="0"/>
+            </AnimationGroup>
+        </Animations>
+        <Layers>
+            <Layer level="BORDER">
+
+            </Layer>
+            <Layer level="BACKGROUND" textureSubLevel="-5">
+                <Texture>
+                    <Color r="0.75" g="0.55" b="0.15" a="0.75"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="1" y="-1"/>
+                        <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="BACKGROUND" textureSubLevel="-3">
+                <Texture>
+                    <Color r="0.0" g="0.0" b="0.0" a="1.0"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="3" y="-3"/>
+                        <Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="BACKGROUND">
+                <Texture>
+                    <Color r="0.25" g="0.25" b="0.25" a="0.5"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="3" y="-3"/>
+                        <Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="HIGHLIGHT">
+
+            </Layer>
+            <Layer level="ARTWORK">
+                <Texture>
+                    <Size y="20"/>
+                    <Color r="0.375" g="0.3" b="0.07" a="0.8"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="3" y="-3"/>
+                        <Anchor point="TOPRIGHT" x="-3" y="-3"/>
+                    </Anchors>
+                </Texture>
+                <Texture>
+                    <Size y="20"/>
+                    <Color r="0.375" g="0.3" b="0.07" a="0.4"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="3" y="-23"/>
+                        <Anchor point="TOPRIGHT" x="-3" y="-23"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY">
+                <FontString parentKey="name" inherits="GameFontNormal">
+                    <Size y="20"/>
+                    <Color r="1" g="1" b="1" a="1"/>
+                    <Anchors>
+                        <Anchor point="TOP" x="0" y="-3"/>
+                    </Anchors>
+                </FontString>
+                <FontString parentKey="vendorValue" inherits="GameFontNormal">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOP" relativeKey="$parent.name" relativePoint="BOTTOM" x="0" y="0"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+
+        <Frames>
+            <Button parentKey="settings" registerForClicks="anyDown">
+                <Size x="20" y="20"/>
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="2" y="-2"/>
+                </Anchors>
+                <NormalTexture atlas="mechagon-projects"/>
+            </Button>
+            <Button parentKey="vendorItems" registerForClicks="anyDown">
+                <Size x="20" y="20"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-2" y="-2"/>
+                </Anchors>
+                <NormalTexture atlas="Banker"/>
+            </Button>
+            <Button parentKey="lockUnlockItems" registerForClicks="anyDown">
+                <Size x="20" y="20"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.vendorItems" relativePoint="LEFT" x="-1" y="0"/>
+                </Anchors>
+                <NormalTexture atlas="vignetteloot-locked"/>
+            </Button>
+            <Frame parentKey="listview" inherits="VendorMateListviewTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="2" y="-42"/>
+                    <Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+                </Anchors>
+                <KeyValues>
+                    <KeyValue key="itemTemplate" value="VendorMateGridviewItemListviewItemTemplate" type="string"/>
+                    <KeyValue key="elementHeight" value="16" type="number"/>
+                </KeyValues>
+            </Frame>
+        </Frames>
+
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+        </Scripts>
+    </Frame>
+
+</Ui>

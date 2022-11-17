@@ -1,0 +1,25 @@
+## Name: VendorMate
+## Version: 0.1
+## Interface: 100000
+## Notes: Vendor friend for your WoW adventures 
+## SavedVariables: VendorMateAccount
+
+Locales.lua
+
+Database.lua
+
+GridView.lua
+
+Listview.lua
+Listview.xml
+
+Dropdown.lua
+Dropdown.xml
+
+Templates.lua
+Templates.xml
+
+Events.lua
+
+VendorMate.lua
+VendorMate.xml
