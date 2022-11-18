@@ -1,58 +1,5 @@
 <Ui>
 
-    <Frame name="VendorMateDropdown" inherits="UIDropDownMenuTemplate">
-        <!-- <Size x="10" y="10"/>
-        <Anchors>
-            <Anchor point="CENTER" x="0" y="0"/>
-        </Anchors> -->
-    </Frame>
-
-    <Frame name="VendorMateDropdownCustomFrameSlider" mixin="VendorMateDropdownCustomFrameSliderMixin" inherits="UIDropDownCustomMenuEntryTemplate">
-        <Size x="150" y="50"/>
-        <HitRectInsets left="10" right="10" top="10" bottom="10"/>
-        <Frames>
-            <Slider name="VendorMateDropdownCustomFrameSliderMinItemLevel" parentKey="minEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
-                <Size x="100" y="16"/>
-                <Anchors>
-                    <Anchor point="TOP" x="0" y="-5"/>
-                </Anchors>
-            </Slider>
-            <Slider name="VendorMateDropdownCustomFrameSliderMaxItemLevel" parentKey="maxEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
-                <Size x="100" y="16"/>
-                <Anchors>
-                    <Anchor point="TOP" relativeKey="$parent.minEffectiveIlvl" relativePoint="BOTTOM" x="0" y="-15"/>
-                </Anchors>
-            </Slider>
-        </Frames>
-        <Layers>
-            <Layer level="OVERLAY">
-                <FontString parentKey="minEffectiveIlvlHeader" inherits="GameFontNormalSmall" text="Min ilvl">
-                    <Anchors>
-                        <Anchor point="BOTTOM" relativeKey="$parent.minEffectiveIlvl" relativePoint="TOP" x="0" y="0"/>
-                    </Anchors>
-                </FontString>
-                <FontString parentKey="maxEffectiveIlvlHeader" inherits="GameFontNormalSmall" text="Max ilvl">
-                    <Anchors>
-                        <Anchor point="BOTTOM" relativeKey="$parent.maxEffectiveIlvl" relativePoint="TOP" x="0" y="0"/>
-                    </Anchors>
-                </FontString>
-                <FontString parentKey="minEffectiveIlvlLabel" inherits="GameFontNormalSmall" text="250">
-                    <Anchors>
-                        <Anchor point="LEFT" relativeKey="$parent.minEffectiveIlvl" relativePoint="RIGHT" x="5" y="0"/>
-                    </Anchors>
-                </FontString>
-                <FontString parentKey="maxEffectiveIlvlLabel" inherits="GameFontNormalSmall" text="250">
-                    <Anchors>
-                        <Anchor point="LEFT" relativeKey="$parent.maxEffectiveIlvl" relativePoint="RIGHT" x="5" y="0"/>
-                    </Anchors>
-                </FontString>
-            </Layer>
-        </Layers>
-        <Scripts>
-            <OnLoad method="OnLoad"/>
-        </Scripts>
-    </Frame>
-
     <Frame name="VendorMateUI" mixin="VendorMateMixin" parent="UIParent" frameStrata="HIGH" enableMouse="true" movable="true" resizable="true" hidden="true">
 
         <Size x="500" y="200"/>
@@ -174,6 +121,13 @@
                                     <Size y="24"/>
                                     <Anchors>
                                         <Anchor point="TOP" x="0" y="-12"/>
+                                    </Anchors>
+                                </FontString>
+                                <FontString parentKey="allFiltersInfo" inherits="GameFontNormal">
+                                    <Size y="24"/>
+                                    <Color r="1" g="1" b="1"/>
+                                    <Anchors>
+                                        <Anchor point="BOTTOM" x="0" y="0"/>
                                     </Anchors>
                                 </FontString>
                             </Layer>

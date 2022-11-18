@@ -9,59 +9,6 @@ local NUM_PLAYER_BAGS = 4;
 
 local L = vm.locales;
 
-function vm:debug(...)
-    local data = ...;
-    if (data) then
-        if (type(data) == "table") then
-            UIParentLoadAddOn("Blizzard_DebugTools");
-            --DevTools_Dump(data);
-            DisplayTableInspectorWindow(data);
-        else
-            print(string.format("[%s] DEBUG: ", addonName), ...);
-        end
-    end
-end
-
-
-
-VendorMateDropdownCustomFrameSliderMixin = {}
-
-function VendorMateDropdownCustomFrameSliderMixin:OnLoad()
-
-    local name = self.minEffectiveIlvl:GetName()
-    _G[name.."Low"]:SetText(nil)
-    _G[name.."High"]:SetText(nil)
-
-    local name = self.maxEffectiveIlvl:GetName()
-    _G[name.."Low"]:SetText(nil)
-    _G[name.."High"]:SetText(nil)
-
-
-    self.minEffectiveIlvl:SetScript("OnMouseWheel", function(_, delta)
-        self.minEffectiveIlvl:SetValue(self.minEffectiveIlvl:GetValue() + delta)
-    end)
-    self.maxEffectiveIlvl:SetScript("OnMouseWheel", function(_, delta)
-        self.maxEffectiveIlvl:SetValue(self.maxEffectiveIlvl:GetValue() + delta)
-    end)
-
-    self.minEffectiveIlvl:SetScript("OnValueChanged", function()
-        self.minEffectiveIlvlLabel:SetText(math.ceil(self.minEffectiveIlvl:GetValue()))
-        if self.tile then
-            self.tile.rules.minEffectiveIlvl = math.ceil(self.minEffectiveIlvl:GetValue())
-        end
-        vm:TriggerEvent("Filter_OnChanged")
-    end)
-    self.maxEffectiveIlvl:SetScript("OnValueChanged", function()
-        self.maxEffectiveIlvlLabel:SetText(math.ceil(self.maxEffectiveIlvl:GetValue()))
-        if self.tile then
-            self.tile.rules.maxEffectiveIlvl = math.ceil(self.maxEffectiveIlvl:GetValue())
-        end
-        vm:TriggerEvent("Filter_OnChanged")
-    end)
-
-end
-
-
 
 
 
@@ -156,8 +103,6 @@ function VendorMateMixin:SetupVendorView()
 
     vendor.nameArtRight:SetRotation(3.14)
 
-    vendor.name:SetText("")
-
     vendor.tilesGridviewContainer.scrollChild:SetSize(vendor:GetWidth(), vendor:GetHeight())
 
     vendor.tilesGridview = Gridview:New(vendor.tilesGridviewContainer.scrollChild, "VendorMateVendorGridviewItemTemplate")
@@ -177,8 +122,8 @@ function VendorMateMixin:SetupVendorView()
     local function addFilter()
         local name = vendor.newFilterName:GetText()
     
-        local prio = #self.selectedProfile.vendor.tiles + 1;
-        local tile = {
+        local prio = #self.selectedProfile.vendor.filters + 1;
+        local filter = {
             priority = prio,
             name = name,
             pkey = time(),
@@ -195,7 +140,7 @@ function VendorMateMixin:SetupVendorView()
             },
         }
         if type(self.selectedProfile) == "table" then
-            table.insert(self.selectedProfile.vendor.tiles, tile)
+            table.insert(self.selectedProfile.vendor.filters, filter)
             vendor.newFilterName:SetText("")
             vm:TriggerEvent("Profile_OnFilterAdded")
         end
@@ -215,6 +160,11 @@ function VendorMateMixin:SetupVendorView()
         -- set this to try vendoring filter 2 as filter 1 was just processed
         self.nextFilterToVendor = 2
 
+    end)
+
+    vendor:SetScript("OnShow", function()
+        self:UpdateVendorViewLayout()
+        self:UpdateFilters()
     end)
 
 end
@@ -289,7 +239,7 @@ function VendorMateMixin:GenerateDefaultProfile()
             class = self.character.class,
             name = self.character.name,
             vendor = {
-                tiles = {
+                filters = {
                     {
                         pkey = time(),
                         priority = 0,
@@ -304,6 +254,8 @@ function VendorMateMixin:GenerateDefaultProfile()
                             maxEffectiveIlvl = 500,
                             inventoryType = "any",
                             tier = "any",
+                            bindingType = "any",
+                            isBound = "any",
                         },
                     }
                 },
@@ -311,6 +263,7 @@ function VendorMateMixin:GenerateDefaultProfile()
             history = {},
         })
     end
+
 end
 
 function VendorMateMixin:Player_OnEnteringWorld(character)
@@ -319,13 +272,13 @@ function VendorMateMixin:Player_OnEnteringWorld(character)
 
     self:GenerateDefaultProfile()
 
+    local defaultProfile = Database:GetProfile(string.format("%s.%s.%s", character.name, character.realm, CHAT_DEFAULT))
+    vm:TriggerEvent("Profile_OnChanged", defaultProfile)
+
     self:SetupVendorView()
     self:SetupOptionsView()
 
     self:UpdateVendorViewLayout()
-
-    local defaultProfile = Database:GetProfile(string.format("%s.%s.%s", character.name, character.realm, CHAT_DEFAULT))
-    vm:TriggerEvent("Profile_OnChanged", defaultProfile)
 
     self:SetScript("OnHide", function()
 
@@ -346,10 +299,14 @@ end
 
 
 function VendorMateMixin:Profile_OnChanged(newProfile)
-    self.content.vendor.tilesGridview:Flush()
+    --DevTools_Dump(newProfile)
     self.selectedProfile = newProfile;
     self.content.vendor.name:SetText(self.selectedProfile.pkey)
-    self:UpdateFilters()
+
+    if self.content.vendor.tilesGridview then
+        self.content.vendor.tilesGridview:Flush()
+    end
+    Database:SetConfig("currentProfile", newProfile.pkey)
 end
 
 
@@ -358,22 +315,22 @@ function VendorMateMixin:Profile_OnFilterAdded()
 end
 
 
-function VendorMateMixin:Profile_OnFilterRemoved(tile)
+function VendorMateMixin:Profile_OnFilterRemoved(filter)
     self.content.vendor.tilesGridview:Flush()
-    if tile.pkey then
+    if filter.pkey then
         if type(self.selectedProfile) == "table" then
             local key;
-            for k, v in ipairs(self.selectedProfile.vendor.tiles) do
-                if tile.pkey == v.pkey then
+            for k, v in ipairs(self.selectedProfile.vendor.filters) do
+                if filter.pkey == v.pkey then
                     key = k;
                 end
             end
             if type(key) == "number" then
 
-                table.remove(self.selectedProfile.vendor.tiles, key)
+                table.remove(self.selectedProfile.vendor.filters, key)
 
                 -- adjust priorities for filters, these should follow the ipairs order
-                for k, v in ipairs(self.selectedProfile.vendor.tiles) do
+                for k, v in ipairs(self.selectedProfile.vendor.filters) do
                     v.priority = k;
                 end
 
@@ -410,28 +367,28 @@ function VendorMateMixin:UpdateFilters()
     for k, item in ipairs(self.playerBags) do
         C_Item.UnlockItemByGUID(item.guid)
     end
-    
-    -- grab the current profile tiles
-    local tiles = self.selectedProfile.vendor.tiles;
-
-    -- get the correct tile priority order
-    table.sort(tiles, function(a,b)
-        return a.priority < b.priority;
-    end)
 
     -- helper tables
     local items = {}
     local itemsFiltered = {}
 
-    -- these functions provide the basis of item filtering based on tile rules
+    -- these functions provide the basis of item filtering based on filter rules
     local function generateItemMinEffectiveIlvlCheck(rule)
         return function(item)
-            return (item.effectiveIlvl >= rule.minEffectiveIlvl)
+            if type(rule.minEffectiveIlvl) == "number" then
+                return (item.effectiveIlvl >= rule.minEffectiveIlvl)
+            else
+                return false;
+            end
         end
     end
     local function generateItemMaxEffectiveIlvlCheck(rule)
         return function(item)
-            return (item.effectiveIlvl <= rule.maxEffectiveIlvl)
+            if type(rule.maxEffectiveIlvl) == "number" then
+                return (item.effectiveIlvl <= rule.maxEffectiveIlvl)
+            else
+                return false;
+            end
         end
     end
     local function generateItemQualityCheck(rule)
@@ -470,26 +427,68 @@ function VendorMateMixin:UpdateFilters()
             end
         end
     end
+    local function generateItemIsBoundTypeCheck(rule)
+        return function(item)
+            if (rule.bindingType == "any") and (rule.isBound == "any") then
+                return true;
+            else
+                
+                -- was boe, now boe
+                if (rule.isBound == false) and (item.isBound == false) and (rule.bindingType == 2) and (item.bindingType == 2) then
+                    return true
+                end
+
+                -- was boe, now sb
+                if (rule.isBound == true) and (item.isBound == true) and (rule.bindingType == 2) and (item.bindingType == 2) then
+                    return true
+                end
+
+                -- soulbound
+                if (rule.isBound == true) and (item.isBound == true) and (rule.bindingType == 1) and (item.bindingType == 1) then
+                    return true
+                end
+
+                -- soulbound
+                if (rule.isBound == true) and (item.isBound == true) and (rule.bindingType == "any") then
+                    return true
+                end
+            end
+            return false;
+        end
+    end
 
     local gridviewItems = self.content.vendor.tilesGridview:GetFrames()
 
-    -- loop each tile and scan player bag items applying the tile rules
-    for k, tile in ipairs(tiles) do
+    -- grab the current profile tiles
+    local filters = self.selectedProfile.vendor.filters;
 
-        -- items for current tile
-        items[tile.pkey] = {}
+    -- get the correct filter priority order
+    table.sort(filters, function(a,b)
+        return a.priority < b.priority;
+    end)
 
-        -- setup checks for the current tile rules
+    local goldAllFilters = 0;
+    local itemsAllFilters = 0;
+    local stacksAllFilters = 0;
+
+    -- loop each filter and scan player bag items applying the filter rules
+    for k, filter in ipairs(filters) do
+
+        -- items for current filter
+        items[filter.pkey] = {}
+
+        -- setup checks for the current filter rules
         local ruleChecks = {
-            generateItemMinEffectiveIlvlCheck(tile.rules),
-            generateItemMaxEffectiveIlvlCheck(tile.rules),
-            generateItemQualityCheck(tile.rules),
-            generateItemClassIdCheck(tile.rules),
-            generateItemSubClassIdCheck(tile.rules),
-            generateItemInventoryTypeCheck(tile.rules),
+            generateItemMinEffectiveIlvlCheck(filter.rules),
+            generateItemMaxEffectiveIlvlCheck(filter.rules),
+            generateItemQualityCheck(filter.rules),
+            generateItemClassIdCheck(filter.rules),
+            generateItemSubClassIdCheck(filter.rules),
+            generateItemInventoryTypeCheck(filter.rules),
+            generateItemIsBoundTypeCheck(filter.rules),
         }
 
-        -- scan player bags for items that comply with tile rules
+        -- scan player bags for items that comply with filter rules
         for k, item in ipairs(self.playerBags) do
             if not itemsFiltered[item.guid] then
                 local match = true
@@ -500,14 +499,17 @@ function VendorMateMixin:UpdateFilters()
                 end
                 if match then
                     C_Item.LockItemByGUID(item.guid)
-                    table.insert(items[tile.pkey], item)
+                    table.insert(items[filter.pkey], item)
+                    goldAllFilters = goldAllFilters + (item.count * item.vendorPrice)
+                    itemsAllFilters = itemsAllFilters + item.count;
+                    stacksAllFilters = stacksAllFilters + 1;
                     itemsFiltered[item.guid] = true;
                 end
             end
         end
 
         -- apply some basic sorting to items
-        table.sort(items[tile.pkey], function(a, b)
+        table.sort(items[filter.pkey], function(a, b)
             if a.name == b.name then
                 if a.quality == b.quality then
                     if a.classID == b.classID then
@@ -526,7 +528,7 @@ function VendorMateMixin:UpdateFilters()
         -- add to gridview
         if not gridviewItems[k] then
             self.content.vendor.tilesGridview:Insert({
-                tile = tile,
+                filter = filter,
             })
         end
 
@@ -540,6 +542,8 @@ function VendorMateMixin:UpdateFilters()
     end
 
     --self.content.vendor.tilesGridview:UpdateLayout()
+
+    self.content.vendor.allFiltersInfo:SetText(string.format("%s %s - %s %s - %s %s - %s", #filters, "Filters", stacksAllFilters, "Stacks", itemsAllFilters, "items", GetCoinTextureString(goldAllFilters)))
 
 end
 
@@ -579,6 +583,8 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
                 info.guid = C_Item.GetItemGUID(location)
                 info.count = C_Item.GetStackCount(location)
                 info.inventoryType = C_Item.GetItemInventoryType(location)
+                info.isBound = C_Item.IsBound(location)
+
 
                 local item = Item:CreateFromBagAndSlot(bag, slot)
                 if not item:IsItemEmpty() then
@@ -594,6 +600,8 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
                         info.effectiveIlvl = effectiveILvl
 
                         local _, _, _, _, icon, classID, subClassID = GetItemInfoInstant(info.link)
+
+                        info.bindingType = select(14, GetItemInfo(info.link))
 
                         info.icon = icon
                         info.classID = classID

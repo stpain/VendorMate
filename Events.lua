@@ -4,6 +4,19 @@ local addonName, vm = ...;
 
 local Database = vm.database;
 
+function vm:debug(...)
+    local data = ...;
+    if (data) then
+        if (type(data) == "table") then
+            UIParentLoadAddOn("Blizzard_DebugTools");
+            --DevTools_Dump(data);
+            DisplayTableInspectorWindow(data);
+        else
+            print(string.format("[%s] DEBUG: ", addonName), ...);
+        end
+    end
+end
+
 Mixin(vm, CallbackRegistryMixin)
 vm:GenerateCallbackEvents({
 
@@ -49,13 +62,7 @@ function f:PLAYER_ENTERING_WORLD()
 end
 
 function f:MERCHANT_SHOW(...)
-
-    --for now maybe target name is best option
-    local npcVendor = UnitName("target")
-    --print(npcVendor)
-
-    vm:TriggerEvent("PlayerBags_OnItemsChanged")
-
+    vm:TriggerEvent("Merchant_OnShow")
 end
 
 function f:PLAYER_INTERACTION_MANAGER_FRAME_SHOW(...)
@@ -65,9 +72,7 @@ function f:PLAYER_INTERACTION_MANAGER_FRAME_SHOW(...)
 end
 
 function f:BAG_UPDATE_DELAYED(...)
-
     vm:TriggerEvent("PlayerBags_OnItemsChanged")
-
 end
 
 f:RegisterEvent("ADDON_LOADED")

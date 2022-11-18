@@ -55,7 +55,7 @@ function GridView:Insert(item)
 
     self:UpdateLayout()
 
-    print("gridview insert, new frame count", self.framePool:GetNumActive())
+    --print("gridview insert, new frame count", self.framePool:GetNumActive())
 
 end
 
@@ -95,7 +95,7 @@ end
 
 --remove everything and hide
 function GridView:Flush()
-    print("pre flush release call frame count", self.framePool:GetNumActive())
+    --print("pre flush release call frame count", self.framePool:GetNumActive())
     self.data = {}
     for k, f in ipairs(self.frames) do
         if f.ResetDataBinding then
@@ -106,7 +106,7 @@ function GridView:Flush()
     wipe(self.frames)
     self.frames = {}
     self.framePool:ReleaseAll()
-    print("post flush release call frame count", self.framePool:GetNumActive())
+    --print("post flush release call frame count", self.framePool:GetNumActive())
 end
 
 --set the min max widths for items, this is used to calculate a size to use when resizing

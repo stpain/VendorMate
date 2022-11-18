@@ -64,15 +64,20 @@
     </Button>
 
     <Frame name="VendorMateFilterDropDownMenu" mixin="VendorMateFilterDropDownMenuMixin" parent="UIParent" frameStrata="DIALOG" enableMouse="true">
-        <Size x="200" y="380"/>
+        <Size x="200" y="420"/>
+        <Animations>
+            <AnimationGroup parentKey="fade" setToFinalAlpha="true">
+                <Alpha duration="0.66" fromAlpha="1" toAlpha="0"/>
+            </AnimationGroup>
+        </Animations>
         <Layers>
             <Layer level="BACKGROUND">
-                <Texture>
+                <Texture atlas="UI-Frame-Dragonflight-BackgroundTile" vertTile="true"> <!-- pvpqueue-sidebar-background transmog-set-model-cutoff-fade -->
                     <Anchors>
                         <Anchor point="TOPLEFT" x="6" y="-6"/>
                         <Anchor point="BOTTOMRIGHT" x="-6" y="6"/>
                     </Anchors>
-                    <Color r="0.003" g="0.028" b="0.034" a="0.96"/>
+                    <!-- <Color r="0.003" g="0.028" b="0.034" a="0.76"/> -->
                 </Texture>
             </Layer>
             <Layer level="BORDER">
@@ -151,27 +156,43 @@
                     </Anchors>
                 </FontString>
 
+                <FontString parentKey="itemLevelHeader" inherits="GameFontNormal" text="Item level">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-314"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-314"/>
+                    </Anchors>
+                </FontString>
+
                 <FontString parentKey="itemClassHeader" inherits="GameFontNormal" text="Item type">
                     <Size y="20"/>
                     <Anchors>
-                        <Anchor point="TOPLEFT" x="0" y="-188"/>
-                        <Anchor point="TOPRIGHT" x="0" y="-188"/>
+                        <Anchor point="TOPLEFT" x="0" y="-100"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-100"/>
                     </Anchors>
                 </FontString>
 
                 <FontString parentKey="itemSubClassHeader" inherits="GameFontNormal" text="Item sub type">
                     <Size y="20"/>
                     <Anchors>
-                        <Anchor point="TOPLEFT" x="0" y="-248"/>
-                        <Anchor point="TOPRIGHT" x="0" y="-248"/>
+                        <Anchor point="TOPLEFT" x="0" y="-154"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-154"/>
                     </Anchors>
                 </FontString>
 
                 <FontString parentKey="inventorySlotHeader" inherits="GameFontNormal" text="Inventory slot">
                     <Size y="20"/>
                     <Anchors>
-                        <Anchor point="TOPLEFT" x="0" y="-308"/>
-                        <Anchor point="TOPRIGHT" x="0" y="-308"/>
+                        <Anchor point="TOPLEFT" x="0" y="-208"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-208"/>
+                    </Anchors>
+                </FontString>
+
+                <FontString parentKey="bindTypeHeader" inherits="GameFontNormal" text="Item binding">
+                    <Size y="20"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="0" y="-262"/>
+                        <Anchor point="TOPRIGHT" x="0" y="-262"/>
                     </Anchors>
                 </FontString>
             </Layer>
@@ -241,40 +262,40 @@
             </Button>
 
             <Button parentKey="tier3">
-                <Size x="18" y="18"/>
+                <Size x="22" y="22"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.tierHeader" relativePoint="BOTTOM" x="0" y="-4"/>
                 </Anchors>
             </Button>
             <Button parentKey="tier2">
-                <Size x="18" y="18"/>
+                <Size x="22" y="22"/>
                 <Anchors>
                     <Anchor point="RIGHT" relativeKey="$parent.tier3" relativePoint="LEFT" x="-10" y="0"/>
                 </Anchors>
             </Button>
             <Button parentKey="tier1">
-                <Size x="18" y="18"/>
+                <Size x="22" y="22"/>
                 <Anchors>
                     <Anchor point="RIGHT" relativeKey="$parent.tier2" relativePoint="LEFT" x="-10" y="0"/>
                 </Anchors>
             </Button>
             <Button parentKey="tier4">
-                <Size x="18" y="18"/>
+                <Size x="22" y="22"/>
                 <Anchors>
                     <Anchor point="LEFT" relativeKey="$parent.tier3" relativePoint="RIGHT" x="10" y="0"/>
                 </Anchors>
             </Button>
             <Button parentKey="tier5">
-                <Size x="18" y="18"/>
+                <Size x="22" y="22"/>
                 <Anchors>
                     <Anchor point="LEFT" relativeKey="$parent.tier4" relativePoint="RIGHT" x="10" y="0"/>
                 </Anchors>
             </Button>
 
             <Slider name="VendorMateFilterDropdownMenuIlvlSliderMin" parentKey="minEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
-                <Size x="110" y="16"/>
+                <Size x="100" y="16"/>
                 <Anchors>
-                    <Anchor point="TOP" x="0" y="-120"/>
+                    <Anchor point="TOP" x="0" y="-340"/>
                 </Anchors>
                 <Layers>
                     <Layer level="OVERLAY">
@@ -290,18 +311,23 @@
                                 <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
                             </Anchors>
                         </FontString>
-                        <FontString parentKey="text" inherits="GameFontNormal" text="Min ilvl">
+                        <FontString parentKey="label" inherits="GameFontNormalSmall" text="Min">
                             <Anchors>
-                                <Anchor point="BOTTOM" relativePoint="TOP" x="0" y="2"/>
+                                <Anchor point="RIGHT" relativePoint="LEFT" x="-5" y="0"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString parentKey="value" inherits="GameFontNormal" text="250">
+                            <Anchors>
+                                <Anchor point="LEFT" relativePoint="RIGHT" x="5" y="0"/>
                             </Anchors>
                         </FontString>
                     </Layer>
                 </Layers>
             </Slider>
             <Slider name="VendorMateFilterDropdownMenuIlvlSliderMax" parentKey="maxEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
-                <Size x="110" y="16"/>
+                <Size x="100" y="16"/>
                 <Anchors>
-                    <Anchor point="TOP" relativeKey="$parent.minEffectiveIlvl" relativePoint="BOTTOM" x="0" y="-25"/>
+                    <Anchor point="TOP" relativeKey="$parent.minEffectiveIlvl" relativePoint="BOTTOM" x="0" y="-20"/>
                 </Anchors>
                 <Layers>
                     <Layer level="OVERLAY">
@@ -317,9 +343,14 @@
                                 <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
                             </Anchors>
                         </FontString>
-                        <FontString parentKey="text" inherits="GameFontNormal" text="Max ilvl">
+                        <FontString parentKey="label" inherits="GameFontNormalSmall" text="Max">
                             <Anchors>
-                                <Anchor point="BOTTOM" relativePoint="TOP" x="0" y="2"/>
+                                <Anchor point="RIGHT" relativePoint="LEFT" x="-5" y="0"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString parentKey="value" inherits="GameFontNormal" text="250">
+                            <Anchors>
+                                <Anchor point="LEFT" relativePoint="RIGHT" x="5" y="0"/>
                             </Anchors>
                         </FontString>
                     </Layer>
@@ -327,23 +358,30 @@
             </Slider>
 
             <Button parentKey="classDropdown" inherits="VendorMateDropDownTemplate">
-                <Size x="140" y="38"/>
+                <Size x="140" y="36"/>
                 <Anchors>
-                    <Anchor point="TOP" relativeKey="$parent.itemClassHeader" relativePoint="BOTTOM" x="0" y="0"/>
+                    <Anchor point="TOP" relativeKey="$parent.itemClassHeader" relativePoint="BOTTOM" x="0" y="2"/>
                 </Anchors>
             </Button>
 
             <Button parentKey="subClassDropdown" inherits="VendorMateDropDownTemplate">
-                <Size x="140" y="38"/>
+                <Size x="140" y="36"/>
                 <Anchors>
-                    <Anchor point="TOP" relativeKey="$parent.itemSubClassHeader" relativePoint="BOTTOM" x="0" y="0"/>
+                    <Anchor point="TOP" relativeKey="$parent.itemSubClassHeader" relativePoint="BOTTOM" x="0" y="2"/>
                 </Anchors>
             </Button>
 
             <Button parentKey="inventorySlotDropdown" inherits="VendorMateDropDownTemplate">
-                <Size x="140" y="38"/>
+                <Size x="140" y="36"/>
                 <Anchors>
-                    <Anchor point="TOP" relativeKey="$parent.inventorySlotHeader" relativePoint="BOTTOM" x="0" y="0"/>
+                    <Anchor point="TOP" relativeKey="$parent.inventorySlotHeader" relativePoint="BOTTOM" x="0" y="2"/>
+                </Anchors>
+            </Button>
+            
+            <Button parentKey="bindTypeDropdown" inherits="VendorMateDropDownTemplate">
+                <Size x="140" y="36"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeKey="$parent.bindTypeHeader" relativePoint="BOTTOM" x="0" y="2"/>
                 </Anchors>
             </Button>
         </Frames>
@@ -438,6 +476,13 @@
                     <Anchor point="TOPLEFT" x="2" y="-2"/>
                 </Anchors>
                 <NormalTexture atlas="mechagon-projects"/>
+            </Button>
+            <Button parentKey="deleteFilter" registerForClicks="anyDown">
+                <Size x="20" y="20"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.settings" relativePoint="RIGHT" x="2" y="0"/>
+                </Anchors>
+                <NormalTexture atlas="transmog-icon-remove"/>
             </Button>
             <Button parentKey="vendorItems" registerForClicks="anyDown">
                 <Size x="20" y="20"/>

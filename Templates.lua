@@ -48,7 +48,27 @@ end
 VendorMateFilterDropDownMenuMixin = {}
 function VendorMateFilterDropDownMenuMixin:OnLoad()
 
+    self:SetScript("OnEnter", function()
+        if self.fadeTimer then
+            self.fadeTimer:Cancel()
+        end
+        self.fade:Stop()
+        self:SetAlpha(1)
+    end)
+    self:SetScript("OnLeave", function()
+        self.fadeTimer = C_Timer.NewTimer(0.4, function()
+            if not self:IsMouseOver() then
+                self.fade:Play()
+            end
+        end)
+    end)
+    self.fade:SetScript("OnFinished", function()
+        self:Hide()
+    end)
 
+    self:SetScript("OnHide", function()
+        self.filter = nil;
+    end)
 
     for i = 0, 8 do
         self["quality"..i].icon:SetColorTexture(ITEM_QUALITY_COLORS[i].r, ITEM_QUALITY_COLORS[i].g, ITEM_QUALITY_COLORS[i].b)
@@ -62,16 +82,16 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
             GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
         end)
         self["quality"..i]:SetScript("OnClick", function(s)
-            if self.tile then
+            if self.filter then
 
                 for i = 0, 8 do
                     self["quality"..i].selected:Hide()
                 end
 
-                if self.tile.rules.quality == i then
-                    self.tile.rules.quality = "any";
+                if self.filter.rules.quality == i then
+                    self.filter.rules.quality = "any";
                 else
-                    self.tile.rules.quality = i;
+                    self.filter.rules.quality = i;
                     s.selected:Show()
                 end
                 vm:TriggerEvent("Filter_OnChanged")
@@ -84,22 +104,38 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
         self["tier"..i]:SetNormalAtlas(string.format("Professions-ChatIcon-Quality-Tier%s", i))
     end
 
-    _G[self.minEffectiveIlvl:GetName().."Low"]:SetText(" ")
-    _G[self.minEffectiveIlvl:GetName().."High"]:SetText(" ")
-    _G[self.minEffectiveIlvl:GetName().."Text"]:SetText(" ")
+    local sliders = {
+        "minEffectiveIlvl",
+        "maxEffectiveIlvl",
+    }
 
-    _G[self.maxEffectiveIlvl:GetName().."Low"]:SetText(" ")
-    _G[self.maxEffectiveIlvl:GetName().."High"]:SetText(" ")
-    _G[self.maxEffectiveIlvl:GetName().."Text"]:SetText(" ")
+    for k, slider in ipairs(sliders) do
+
+        _G[self[slider]:GetName().."Low"]:SetText(" ")
+        _G[self[slider]:GetName().."High"]:SetText(" ")
+        _G[self[slider]:GetName().."Text"]:SetText(" ")
+
+        self[slider]:SetScript("OnMouseWheel", function(s, delta)
+            s:SetValue(s:GetValue() + delta)
+        end)
+
+        self[slider]:SetScript("OnValueChanged", function(s)
+            s.value:SetText(math.ceil(s:GetValue()))
+            if self.filter then
+                self.filter.rules[slider] = self[slider]:GetValue()
+                vm:TriggerEvent("Filter_OnChanged")
+            end
+        end)
+    end
 
 
     local classIdMenuList = {}
     table.insert(classIdMenuList, {
         text = CLUB_FINDER_ANY_FLAG,
         func = function()
-            if self.tile then
-                self.tile.rules.classID = "any";
-                self.tile.rules.subClassID = "any";
+            if self.filter then
+                self.filter.rules.classID = "any";
+                self.filter.rules.subClassID = "any";
                 vm:TriggerEvent("Filter_OnChanged")
 
                 self.subClassDropdown:SetMenu({})
@@ -110,8 +146,8 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
         table.insert(classIdMenuList, {
             text = GetItemClassInfo(classID),
             func = function()
-                if self.tile then
-                    self.tile.rules.classID = classID;
+                if self.filter then
+                    self.filter.rules.classID = classID;
                     vm:TriggerEvent("Filter_OnChanged")
                 end
 
@@ -124,9 +160,9 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                                 text = CLUB_FINDER_ANY_FLAG,
                                 -- this sets the subClass option to any btu needs to keep the classID of its parent
                                 func = function()
-                                    if self.tile then
-                                        self.tile.rules.classID = classID;
-                                        self.tile.rules.subClassID = "any";
+                                    if self.filter then
+                                        self.filter.rules.classID = classID;
+                                        self.filter.rules.subClassID = "any";
                                         vm:TriggerEvent("Filter_OnChanged")
                                     end
                                 end,
@@ -136,9 +172,9 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                         table.insert(subClassIdMenuList, {
                             text = GetItemSubClassInfo(classID, subClassID),
                             func = function()
-                                if self.tile then
-                                    self.tile.rules.classID = classID;
-                                    self.tile.rules.subClassID = subClassID;
+                                if self.filter then
+                                    self.filter.rules.classID = classID;
+                                    self.filter.rules.subClassID = subClassID;
                                     vm:TriggerEvent("Filter_OnChanged")
                                 end
                             end,
@@ -171,8 +207,8 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
     table.insert(inventoryTypeMenuList, {
         text = CLUB_FINDER_ANY_FLAG,
         func = function()
-            if self.tile then
-                self.tile.rules.inventoryType = "any";
+            if self.filter then
+                self.filter.rules.inventoryType = "any";
                 vm:TriggerEvent("Filter_OnChanged")
             end
         end,
@@ -181,12 +217,71 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
         table.insert(inventoryTypeMenuList, {
             text = invType.global,
             func = function()
-                self.tile.rules.inventoryType = invType.id
-                vm:TriggerEvent("Filter_OnChanged")
+                if self.filter then
+                    self.filter.rules.inventoryType = invType.id
+                    vm:TriggerEvent("Filter_OnChanged")
+                end
             end,
         })
     end
     self.inventorySlotDropdown:SetMenu(inventoryTypeMenuList)
+
+
+    local bindMenu = {
+        {
+            text = CLUB_FINDER_ANY_FLAG,
+            func = function()
+                if self.filter then
+                    self.filter.rules.isBound = "any";
+                    self.filter.rules.bindingType = "any";
+                    vm:TriggerEvent("Filter_OnChanged")
+                end
+            end,
+        },
+        {
+            text = "BoE",
+            func = function()
+                if self.filter then
+                    self.filter.rules.isBound = false;
+                    self.filter.rules.bindingType = 2;
+                    vm:TriggerEvent("Filter_OnChanged")
+                end
+            end,
+        },
+        {
+            text = "Soulbound (BoE)",
+            func = function()
+                if self.filter then
+                    self.filter.rules.isBound = true;
+                    self.filter.rules.bindingType = 2;
+                    vm:TriggerEvent("Filter_OnChanged")
+                end
+            end,
+        },
+        {
+            text = "Soulbound (BoP)",
+            func = function()
+                if self.filter then
+                    self.filter.rules.isBound = true;
+                    self.filter.rules.bindingType = 1;
+                    vm:TriggerEvent("Filter_OnChanged")
+                end
+            end,
+        },
+        {
+            text = "Soulbound (All)",
+            func = function()
+                if self.filter then
+                    self.filter.rules.isBound = true;
+                    self.filter.rules.bindingType = "any";
+                    vm:TriggerEvent("Filter_OnChanged")
+                end
+            end,
+        },
+    }
+
+    self.bindTypeDropdown:SetMenu(bindMenu)
+
 
 end
 
@@ -200,9 +295,13 @@ function VendorMateVendorGridviewItemMixin:OnLoad()
     self.itemsLocked = true;
 
     self.settings:SetScript("OnClick", function()
-
         self:InitDropdownMenu()
+    end)
 
+    self.deleteFilter:SetScript("OnClick", function()
+        if self.filter then
+            StaticPopup_Show("VendorMateDialogDeleteFilterConfirm", self.filter.name, nil, self.filter)
+        end
     end)
 
     self.vendorItems:SetScript("OnClick", function()
@@ -227,21 +326,29 @@ function VendorMateVendorGridviewItemMixin:InitDropdownMenu()
 
     local settings = VendorMateFilterDropDownMenu;
 
-    settings.tile = self.tile;
+    if settings.filter and (settings.filter.pkey == self.filter.pkey) then
+        settings:Hide()
+        settings.filter = nil;
+        return;
 
-    for i = 0, 8 do
-        settings["quality"..i].selected:Hide()
+    else
+        settings.filter = self.filter;
+        settings:SetAlpha(1)
+
+        for i = 0, 8 do
+            settings["quality"..i].selected:Hide()
+        end
+        if type(self.filter.rules.quality) == "number" then
+            settings["quality"..self.filter.rules.quality].selected:Show()
+        end
+    
+        settings.minEffectiveIlvl:SetValue(self.filter.rules.minEffectiveIlvl)
+        settings.maxEffectiveIlvl:SetValue(self.filter.rules.maxEffectiveIlvl)
+    
+        settings:ClearAllPoints()
+        settings:SetPoint("TOPLEFT", self.settings, "TOPLEFT", 4, -4)
+        settings:Show()
     end
-    if type(self.tile.rules.quality) == "number" then
-        settings["quality"..self.tile.rules.quality].selected:Show()
-    end
-
-    settings.minEffectiveIlvl:SetValue(self.tile.rules.minEffectiveIlvl)
-    settings.maxEffectiveIlvl:SetValue(self.tile.rules.maxEffectiveIlvl)
-
-    settings:ClearAllPoints()
-    settings:SetPoint("TOPLEFT", self.settings, "TOPLEFT", 12, -12)
-    settings:Show()
 
 end
 
@@ -308,8 +415,8 @@ function VendorMateVendorGridviewItemMixin:VendorAllItems()
 end
 
 function VendorMateVendorGridviewItemMixin:SetDataBinding(binding)
-    self.tile = binding.tile;
-    self.name:SetText(binding.tile.name)
+    self.filter = binding.filter;
+    self.name:SetText(string.format("%s %s", binding.filter.name, binding.filter.priority))
     --self:UpdateItems(binding.listviewData)
 end
 
@@ -329,7 +436,7 @@ function VendorMateVendorGridviewItemMixin:UpdateItems(items)
 end
 
 function VendorMateVendorGridviewItemMixin:GetTilePkey()
-    return self.tile.pkey;
+    return self.filter.pkey;
 end
 
 function VendorMateVendorGridviewItemMixin:UpdateLayout()
@@ -337,6 +444,6 @@ function VendorMateVendorGridviewItemMixin:UpdateLayout()
 end
 
 function VendorMateVendorGridviewItemMixin:ResetDataBinding()
-    self.tile = nil;
+    self.filter = nil;
     self.listview.DataProvider:Flush()
 end

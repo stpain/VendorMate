@@ -53,16 +53,13 @@ function Database:GetProfiles()
 end
 
 
-function Database:AddTile(pkey, tile)
-    if self.db and self.db.profiles then
-        for k, profile in ipairs(self.db.profiles) do
-            if profile.pkey == pkey then
-                table.insert(profile.tiles, tile)
-            end
-        end
-    end
+function Database:SetConfig(key, val)
+    self.db.config[key] = val;
 end
 
+function Database:GetConfig(key)
+    return self.db.config[key];
+end
 
 function Database:NewTransaction(event, amount, character, vendor)
     
