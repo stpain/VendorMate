@@ -22,13 +22,17 @@ VendorMateGridviewItemListviewItemMixin = {}
 function VendorMateGridviewItemListviewItemMixin:OnLoad()
 
     self.fade:SetScript("OnFinished", function()
+        self.item = nil;
+        self.text:SetText(nil)
         self:Hide()
     end)
 
     self:SetScript("OnEnter", function()
         if self.item then
-            GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetHyperlink(self.item.link)
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(tostring(self.item.ignore))
             GameTooltip:Show()
         end
     end)
@@ -39,8 +43,8 @@ function VendorMateGridviewItemListviewItemMixin:OnLoad()
         if self.item then
             self.item.ignore = not self.item.ignore;
             self.ignoreIcon:SetAtlas((self.item.ignore == false) and "common-icon-checkmark" or "common-icon-redx")
-            vm.ignoreItemGuid[self.item.guid] = self.item.ignore;
-            vm:TriggerEvent("Filter_OnChanged")
+            --vm.ignoreItemGuid[self.item.guid] = self.item.ignore;
+            vm:TriggerEvent("Filter_OnIgnoredChanged", self.item)
         end
     end)
     
@@ -58,15 +62,17 @@ function VendorMateGridviewItemListviewItemMixin:SetDataBinding(binding, height)
 
     vm:RegisterCallback("Filter_OnItemSold", self.OnItemSold, self)
 
-    self:SetAlpha(1)
     self:Show()
+    self.show:Play()
 
     self.item = binding
-    if vm.ignoreItemGuid[self.item.guid] then
-        self.ignoreIcon:SetAtlas((vm.ignoreItemGuid[self.item.guid] == false) and "common-icon-checkmark" or "common-icon-redx")
-    else
-        self.ignoreIcon:SetAtlas((self.item.ignore == false) and "common-icon-checkmark" or "common-icon-redx")
-    end
+    self.ignoreIcon:SetAtlas((self.item.ignore == false) and "common-icon-checkmark" or "common-icon-redx")
+    
+    -- if vm.ignoreItemGuid[self.item.guid] then
+    --     self.ignoreIcon:SetAtlas((vm.ignoreItemGuid[self.item.guid] == false) and "common-icon-checkmark" or "common-icon-redx")
+    -- else
+    --     self.ignoreIcon:SetAtlas((self.item.ignore == false) and "common-icon-checkmark" or "common-icon-redx")
+    -- end
 
     self.text:SetText(self.item.link)
     
@@ -103,6 +109,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
 
     self:SetScript("OnHide", function()
         self.filter = nil;
+        vm:TriggerEvent("Filter_OnChanged")
     end)
 
     for i = 0, 8 do
@@ -129,7 +136,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                     self.filter.rules.quality = i;
                     s.selected:Show()
                 end
-                vm:TriggerEvent("Filter_OnChanged")
+                --vm:TriggerEvent("Filter_OnChanged")
 
             end
         end)
@@ -158,7 +165,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
             s.value:SetText(math.ceil(s:GetValue()))
             if self.filter then
                 self.filter.rules[slider] = self[slider]:GetValue()
-                vm:TriggerEvent("Filter_OnChanged")
+                --vm:TriggerEvent("Filter_OnChanged")
             end
         end)
     end
@@ -171,7 +178,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
             if self.filter then
                 self.filter.rules.classID = "any";
                 self.filter.rules.subClassID = "any";
-                vm:TriggerEvent("Filter_OnChanged")
+                --vm:TriggerEvent("Filter_OnChanged")
 
                 self.subClassDropdown:SetMenu({})
             end
@@ -183,7 +190,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
             func = function()
                 if self.filter then
                     self.filter.rules.classID = classID;
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
 
                 local subClassIdMenuList = {}
@@ -198,7 +205,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                                     if self.filter then
                                         self.filter.rules.classID = classID;
                                         self.filter.rules.subClassID = "any";
-                                        vm:TriggerEvent("Filter_OnChanged")
+                                        --vm:TriggerEvent("Filter_OnChanged")
                                     end
                                 end,
                             })
@@ -210,7 +217,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                                 if self.filter then
                                     self.filter.rules.classID = classID;
                                     self.filter.rules.subClassID = subClassID;
-                                    vm:TriggerEvent("Filter_OnChanged")
+                                    --vm:TriggerEvent("Filter_OnChanged")
                                 end
                             end,
                         })
@@ -244,7 +251,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
         func = function()
             if self.filter then
                 self.filter.rules.inventoryType = "any";
-                vm:TriggerEvent("Filter_OnChanged")
+                --vm:TriggerEvent("Filter_OnChanged")
             end
         end,
     })
@@ -254,7 +261,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
             func = function()
                 if self.filter then
                     self.filter.rules.inventoryType = invType.id
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
             end,
         })
@@ -269,7 +276,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                 if self.filter then
                     self.filter.rules.isBound = "any";
                     self.filter.rules.bindingType = "any";
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
             end,
         },
@@ -279,7 +286,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                 if self.filter then
                     self.filter.rules.isBound = false;
                     self.filter.rules.bindingType = 2;
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
             end,
         },
@@ -289,7 +296,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                 if self.filter then
                     self.filter.rules.isBound = true;
                     self.filter.rules.bindingType = 2;
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
             end,
         },
@@ -299,7 +306,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                 if self.filter then
                     self.filter.rules.isBound = true;
                     self.filter.rules.bindingType = 1;
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
             end,
         },
@@ -309,7 +316,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                 if self.filter then
                     self.filter.rules.isBound = true;
                     self.filter.rules.bindingType = "any";
-                    vm:TriggerEvent("Filter_OnChanged")
+                    --vm:TriggerEvent("Filter_OnChanged")
                 end
             end,
         },
@@ -442,81 +449,60 @@ end
 -- also plays a fade out animation, then flushes the listview
 -- applies vendorLock to prevent any tile updates while vendoring
 function VendorMateVendorGridviewItemMixin:VendorAllItems()
-    if MerchantFrame:IsVisible() and type(self.items) == "table" then
+    if MerchantFrame:IsVisible() then
 
-        if #self.items == 0 then
-            --vm:TriggerEvent("Filter_OnAllItemsSold")
+        local i = #self.items;
+        C_Timer.NewTicker(0.2, function()
+            local item = self.items[i]
 
-        else
+            if not item then
+                return;
+            end
 
-            vm.vendorLocked = true;
+            if item.ignore == false then
 
-            local i = #self.items;
-            C_Timer.NewTicker(0.2, function()
-                local item = self.items[i]
-    
-                if not item then
-                    return;
-                end
-    
-                if item.ignore == false then
-    
-                    C_Item.UnlockItemByGUID(item.guid)                
-                    C_Container.UseContainerItem(item.bagID, item.slotID)
-    
-    
-                end
-    
-                i = i - 1;
-    
-                if i == 0 then
-                    self.listview.DataProvider:Flush()
-                    vm.vendorLocked = false;
-    
-                    --vm:TriggerEvent("Filter_OnAllItemsSold")
-                end
-            end, #self.items)
-    
-                -- if popupOverride then
-                --     if StaticPopup1Button1:IsVisible() then
-                --         StaticPopup1Button1:Click()
-                --     end
-                -- end
-        end
+                C_Item.UnlockItemByGUID(item.guid)
+                C_Container.UseContainerItem(item.bagID, item.slotID)
 
-    else
-        --vm:TriggerEvent("Filter_OnAllItemsSold")
+            end
 
+            i = i - 1;
+
+        end, #self.items)
+
+        -- if popupOverride then
+        --     if StaticPopup1Button1:IsVisible() then
+        --         StaticPopup1Button1:Click()
+        --     end
+        -- end
     end
 end
 
 function VendorMateVendorGridviewItemMixin:SetDataBinding(binding)
     self.filter = binding.filter;
-    self.name:SetText(string.format("%s [%s]", binding.filter.name, binding.filter.priority))
+    self.name:SetText(binding.filter.name)
     --self:UpdateItems(binding.listviewData)
 end
 
 function VendorMateVendorGridviewItemMixin:UpdateItems(items)
     self.items = items;
-    local gold = 0;
-    for k, item in ipairs(self.items) do
-        if item.count and item.vendorPrice and (item.ignore == false) then
-            gold = gold + (item.count * item.vendorPrice)
-        end
-    end
+
     self.itemsLocked = true
     self.lockUnlockItems:SetNormalAtlas("vignetteloot-locked")
-    self.vendorValue:SetText(GetCoinTextureString(gold))
-    self.listview.DataProvider:Flush()
+
+    self.listview.DataProvider = CreateDataProvider();
+    self.listview.scrollView:SetDataProvider(self.listview.DataProvider);
+
     self.listview.DataProvider:InsertTable(self.items)
 end
 
-function VendorMateVendorGridviewItemMixin:GetTilePkey()
+function VendorMateVendorGridviewItemMixin:GetFilterPkey()
     return self.filter.pkey;
 end
 
-function VendorMateVendorGridviewItemMixin:UpdateLayout()
-
+function VendorMateVendorGridviewItemMixin:SetInfoText(info)
+    self.vendorValue:SetText(GetCoinTextureString(info.gold))
+    self.itemCount:SetText(string.format("%s %s %s %s", info.numSlots, "Slots", info.numItems, ITEMS))
 end
 
 function VendorMateVendorGridviewItemMixin:ResetDataBinding()

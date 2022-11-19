@@ -3,7 +3,7 @@
         <Layers>
             <Layer level="BACKGROND">
                 <Texture parentKey="background">
-                    <Color r="0" g="0" b="0" a="0.5"/>
+                    <Color r="0" g="0" b="0" a="0.9"/>
                 </Texture>
             </Layer>
             <Layer level="HIGHLIGHT">

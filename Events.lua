@@ -26,9 +26,9 @@ vm:GenerateCallbackEvents({
     "Merchant_OnShow",
     "Merchant_OnHide",
 
-    "Filter_OnAllItemsSold",
     "Filter_OnItemSold",
     "Filter_OnChanged",
+    "Filter_OnIgnoredChanged",
 
     "Profile_OnChanged",
     "Profile_OnFilterAdded",
@@ -65,9 +65,19 @@ function f:MERCHANT_SHOW(...)
     vm:TriggerEvent("Merchant_OnShow")
 end
 
+function f:MERCHANT_HIDE(...)
+    vm:TriggerEvent("Merchant_OnHide")
+end
+
 function f:PLAYER_INTERACTION_MANAGER_FRAME_SHOW(...)
     if ... == Enum.PlayerInteractionType.Merchant then
         vm:TriggerEvent("Merchant_OnShow")
+    end
+end
+
+function f:PLAYER_INTERACTION_MANAGER_FRAME_HIDE(...)
+    if ... == Enum.PlayerInteractionType.Merchant then
+        vm:TriggerEvent("Merchant_OnHide")
     end
 end
 
@@ -77,16 +87,11 @@ end
 
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent('PLAYER_LOGOUT')
 f:RegisterEvent('BAG_UPDATE_DELAYED')
-f:RegisterEvent('PLAYER_MONEY')
 f:RegisterEvent('MERCHANT_SHOW')
 f:RegisterEvent('MERCHANT_CLOSED')
-f:RegisterEvent('BANKFRAME_OPENED')
-f:RegisterEvent('BANKFRAME_CLOSED')
-f:RegisterEvent('CHAT_MSG_MONEY')
-f:RegisterEvent('CHAT_MSG_LOOT')
 f:RegisterEvent('PLAYER_INTERACTION_MANAGER_FRAME_SHOW')
+f:RegisterEvent('PLAYER_INTERACTION_MANAGER_FRAME_HIDE')
 
 f:SetScript("OnEvent", function(self, event, ...)
     if f[event] then

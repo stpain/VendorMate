@@ -2,16 +2,6 @@ VendorMateListviewMixin = {}
 
 function VendorMateListviewMixin:OnLoad()
 
-    ---these values are set in the xml frames KeyValues, it allows us to reuse code by setting listview item values in xml
-    if type(self.itemTemplate) ~= "string" then
-        error("self.itemTemplate name not set or not of type string")
-        return;
-    end
-    if type(self.elementHeight) ~= "number" then
-        error("self.elementHeight not set or not of type number")
-        return;
-    end 
-
     self.DataProvider = CreateDataProvider();
     self.scrollView = CreateScrollBoxListLinearView();
     self.scrollView:SetDataProvider(self.DataProvider);

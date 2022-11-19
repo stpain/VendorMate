@@ -69,6 +69,8 @@ function GridView:InsertTable(data)
     for i = 1, #self.data do
         local f = self.framePool:Acquire()
 
+        f:SetID(i)
+
         f:ClearAllPoints()
         f:SetSize(self.itemSize, self.itemSize)
 
@@ -166,6 +168,24 @@ end
 --questionable option
 function GridView:GetFrames()
     return self.frames;
+end
+
+
+function GridView:RemoveFrame(frame)
+    local key;
+    for k, f in ipairs(self.frames) do
+        if f:GetID() == frame:GetID() then
+            if f.ResetDataBinding then
+                f:ResetDataBinding()
+            end
+            key = k;
+            self.framePool:Release(f)
+        end
+    end
+    if type(key) == "number" then
+        table.remove(self.frames, key)
+    end
+    self:UpdateLayout()
 end
 
 addon.gridview = GridView;

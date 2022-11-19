@@ -9,12 +9,11 @@ local NUM_PLAYER_BAGS = 4;
 
 local L = vm.locales;
 
-vm.ignoreItemGuid = {};
-
 
 VendorMateMixin = {
     playerBags = {},
     isRefreshEnabled = false,
+    isItemIgnored = {};
 }
 
 function VendorMateMixin:OnLoad()
@@ -27,16 +26,17 @@ function VendorMateMixin:OnLoad()
 
     vm:RegisterCallback("Player_OnEnteringWorld", self.Player_OnEnteringWorld, self)
     vm:RegisterCallback("Merchant_OnShow", self.Merchant_OnShow, self)
+    vm:RegisterCallback("Merchant_OnHide", self.Merchant_OnHide, self)
     vm:RegisterCallback("PlayerBags_OnItemsChanged", self.PlayerBags_OnItemsChanged, self)
     vm:RegisterCallback("Filter_OnChanged", self.Filter_OnChanged, self)
     vm:RegisterCallback("Profile_OnFilterRemoved", self.Profile_OnFilterRemoved, self)
     vm:RegisterCallback("Profile_OnFilterAdded", self.Profile_OnFilterAdded, self)
     vm:RegisterCallback("Profile_OnChanged", self.Profile_OnChanged, self)
-    vm:RegisterCallback("Filter_OnAllItemsSold", self.Filter_OnAllItemsSold, self)
+    vm:RegisterCallback("Filter_OnIgnoredChanged", self.Filter_OnIgnoredChanged, self)
 
 
     self:RegisterForDrag("LeftButton")
-    self.resize:Init(self, 400, 400, 800, 600)
+    self.resize:Init(self, 400, 400, 800, 620)
 
     self.resize:HookScript("OnMouseDown", function()
         self.isRefreshEnabled = true;
@@ -137,12 +137,14 @@ function VendorMateMixin:SetupVendorView()
                 maxEffectiveIlvl = 500,
                 inventoryType = "any",
                 tier = "any",
+                bindingType = "any",
+                isBound = "any",
             },
         }
         if type(self.selectedProfile) == "table" then
             table.insert(self.selectedProfile.vendor.filters, filter)
             vendor.newFilterName:SetText("")
-            vm:TriggerEvent("Profile_OnFilterAdded")
+            vm:TriggerEvent("Profile_OnFilterAdded", filter)
         end
     end
 
@@ -153,24 +155,47 @@ function VendorMateMixin:SetupVendorView()
     vendor.vendorAllFilters:SetText(string.format("%s %s", TRANSMOG_SOURCE_3, ALL))
 
     vendor.vendorAllFilters:SetScript("OnClick", function()
-    
-        local filters = vendor.tilesGridview:GetFrames()
 
-        for k, filter in ipairs(filters) do
-            filter:VendorAllItems()
+        local vendorItems = {}
+        for filterPkey, items in pairs(self.itemsToVendor) do
+            for k, v in ipairs(items) do
+                table.insert(vendorItems, v)
+            end
         end
+        local i = #vendorItems;
+        C_Timer.NewTicker(0.2, function()
+            local item = vendorItems[i]
 
-        -- set this to try vendoring filter 2 as filter 1 was just processed
-        -- self.nextFilterToVendor = 2
+            if not item then
+                return;
+            end
+
+            if item.ignore == false then
+
+                C_Item.UnlockItemByGUID(item.guid)
+                C_Container.UseContainerItem(item.bagID, item.slotID)
+
+            end
+
+            i = i - 1;
+
+            if i == 0 then
+                self:IterAllFilters()
+                self:UpdateVendorFilters()
+            end
+
+        end, #vendorItems)
 
     end)
 
     vendor:SetScript("OnShow", function()
         self:UpdateVendorViewLayout()
-        self:UpdateFilters()
+        self:IterAllFilters()
+        self:UpdateVendorFilters()
     end)
 
 end
+
 
 
 function VendorMateMixin:UpdateVendorViewLayout()
@@ -273,13 +298,13 @@ function VendorMateMixin:Player_OnEnteringWorld(character)
 
     self.character = character;
 
+    self:SetupVendorView()
+    self:SetupOptionsView()
+
     self:GenerateDefaultProfile()
 
     local defaultProfile = Database:GetProfile(string.format("%s.%s.%s", character.name, character.realm, CHAT_DEFAULT))
     vm:TriggerEvent("Profile_OnChanged", defaultProfile)
-
-    self:SetupVendorView()
-    self:SetupOptionsView()
 
     self:UpdateVendorViewLayout()
 
@@ -288,7 +313,6 @@ function VendorMateMixin:Player_OnEnteringWorld(character)
     end)
     self:SetScript("OnShow", function()
         self:PlayerBags_OnItemsChanged()
-        self:UpdateFilters()
     end)
 end
 
@@ -297,29 +321,47 @@ function VendorMateMixin:Merchant_OnShow()
     self:Show()
     PanelTemplates_SetTab(self, 1);
     self:UpdateVendorViewLayout()
-    self:UpdateFilters()
+end
+
+
+function VendorMateMixin:Merchant_OnHide()
+    self:UnlockAllBagSlots()
+    self:Hide()
 end
 
 
 function VendorMateMixin:Profile_OnChanged(newProfile)
-    --DevTools_Dump(newProfile)
     self.selectedProfile = newProfile;
     self.content.vendor.name:SetText(self.selectedProfile.pkey)
 
     if self.content.vendor.tilesGridview then
         self.content.vendor.tilesGridview:Flush()
+
+        local filters = self.selectedProfile.vendor.filters;
+        for k, filter in ipairs(filters) do
+            self.content.vendor.tilesGridview:Insert({
+                filter = filter,
+            })
+        end
     end
+
     Database:SetConfig("currentProfile", newProfile.pkey)
 end
 
 
-function VendorMateMixin:Profile_OnFilterAdded()
-    self:UpdateFilters()
+function VendorMateMixin:Profile_OnFilterAdded(filter)
+
+    self.content.vendor.tilesGridview:Insert({
+        filter = filter,
+    })
+
+    self:IterAllFilters()
+    self:UpdateVendorFilters()
 end
 
 
 function VendorMateMixin:Profile_OnFilterRemoved(filter)
-    self.content.vendor.tilesGridview:Flush()
+
     if filter.pkey then
         if type(self.selectedProfile) == "table" then
             local key;
@@ -337,7 +379,15 @@ function VendorMateMixin:Profile_OnFilterRemoved(filter)
                     v.priority = k;
                 end
 
-                self:UpdateFilters()
+                self:IterAllFilters()
+                self:UpdateVendorFilters()
+            end
+        end
+
+        local gridview = self.content.vendor.tilesGridview
+        for k, tile in ipairs(gridview:GetFrames()) do
+            if filter.pkey == tile:GetFilterPkey() then
+                gridview:RemoveFrame(tile)
             end
         end
     end
@@ -345,38 +395,36 @@ end
 
 
 function VendorMateMixin:Filter_OnChanged()
-    self:UpdateFilters()
+    self:IterAllFilters()
+    self:UpdateVendorFilters()
+end
+
+
+function VendorMateMixin:Filter_OnIgnoredChanged(item)
+    self.isItemIgnored[item.guid] = item.ignore
+    self:IterAllFilters()
+    self:UpdateVendorFilters_InfoOnly()
 end
 
 
 
-
-function VendorMateMixin:Filter_OnAllItemsSold()
-
-    local filters = self.content.vendor.tilesGridview:GetFrames()
-
-    if filters[self.nextFilterToVendor] then
-        filters[self.nextFilterToVendor]:VendorAllItems()
-        self.nextFilterToVendor = self.nextFilterToVendor + 1;
-
-    else
-        self:UpdateFilters()
-    end
-
-end
-
-
--- this should update all tiles listviews of items and total gold value
-function VendorMateMixin:UpdateFilters()
-
-    -- first unlock all items
+function VendorMateMixin:UnlockAllBagSlots()
     for k, item in ipairs(self.playerBags) do
         C_Item.UnlockItemByGUID(item.guid)
     end
+end
+
+
+-- iter all filters and return a table of items, sorted into filters
+function VendorMateMixin:IterAllFilters()
+
+    -- first unlock all items
+    self:UnlockAllBagSlots()
 
     -- helper tables
-    local items = {}
     local itemsFiltered = {}
+
+    self.itemsToVendor = {}
 
     -- these functions provide the basis of item filtering based on filter rules
     local function generateItemMinEffectiveIlvlCheck(rule)
@@ -463,8 +511,6 @@ function VendorMateMixin:UpdateFilters()
         end
     end
 
-    local gridviewItems = self.content.vendor.tilesGridview:GetFrames()
-
     -- grab the current profile tiles
     local filters = self.selectedProfile.vendor.filters;
 
@@ -481,7 +527,7 @@ function VendorMateMixin:UpdateFilters()
     for k, filter in ipairs(filters) do
 
         -- items for current filter
-        items[filter.pkey] = {}
+        self.itemsToVendor[filter.pkey] = {}
 
         -- setup checks for the current filter rules
         local ruleChecks = {
@@ -505,7 +551,7 @@ function VendorMateMixin:UpdateFilters()
                 end
                 if match then
                     C_Item.LockItemByGUID(item.guid)
-                    table.insert(items[filter.pkey], item)
+                    table.insert(self.itemsToVendor[filter.pkey], item)
 
                     if item.ignore == false then
                         goldAllFilters = goldAllFilters + (item.count * item.vendorPrice)
@@ -519,7 +565,7 @@ function VendorMateMixin:UpdateFilters()
         end
 
         -- apply some basic sorting to items
-        table.sort(items[filter.pkey], function(a, b)
+        table.sort(self.itemsToVendor[filter.pkey], function(a, b)
             if a.name == b.name then
                 if a.quality == b.quality then
                     if a.classID == b.classID then
@@ -535,35 +581,71 @@ function VendorMateMixin:UpdateFilters()
             end
         end)
 
-        -- add to gridview
-        if not gridviewItems[k] then
-            self.content.vendor.tilesGridview:Insert({
-                filter = filter,
-            })
-        end
-
     end
-
-    for k, tile in ipairs(gridviewItems) do
-        local pkey = tile:GetTilePkey()
-        if items[pkey] then
-            tile:UpdateItems(items[pkey])
-        end
-    end
-
-    --self.content.vendor.tilesGridview:UpdateLayout()
 
     self.content.vendor.allFiltersInfo:SetText(string.format("%s %s - %s %s - %s %s - %s", #filters, "Filters", stacksAllFilters, "Stacks", itemsAllFilters, "items", GetCoinTextureString(goldAllFilters)))
 
 end
 
 
+function VendorMateMixin:UpdateVendorFilters()
+    local gridviewItems = self.content.vendor.tilesGridview:GetFrames()
+    for k, tile in ipairs(gridviewItems) do
+        local pkey = tile:GetFilterPkey()
+        if self.itemsToVendor[pkey] then
+
+            tile:UpdateItems(self.itemsToVendor[pkey])
+
+            local gold = 0
+            local items = 0
+            local stacks = 0
+
+            for k, item in ipairs(self.itemsToVendor[pkey]) do            
+                if item.ignore == false then
+                    gold = gold + (item.count * item.vendorPrice)
+                    items = items + item.count;
+                    stacks = stacks + 1;
+                end
+            end
+
+            tile:SetInfoText({
+                gold = gold,
+                numItems = items,
+                numSlots = stacks,
+            })
+        end
+    end
+end
+
+
+function VendorMateMixin:UpdateVendorFilters_InfoOnly()
+    local gridviewItems = self.content.vendor.tilesGridview:GetFrames()
+    for k, tile in ipairs(gridviewItems) do
+        local pkey = tile:GetFilterPkey()
+        if self.itemsToVendor[pkey] then
+            local gold = 0
+            local items = 0
+            local stacks = 0
+
+            for k, item in ipairs(self.itemsToVendor[pkey]) do            
+                if item.ignore == false then
+                    gold = gold + (item.count * item.vendorPrice)
+                    items = items + item.count;
+                    stacks = stacks + 1;
+                end
+            end
+
+            tile:SetInfoText({
+                gold = gold,
+                numItems = items,
+                numSlots = stacks,
+            })
+        end
+    end
+end
+
 
 function VendorMateMixin:PlayerBags_OnItemsChanged()
-
-    if vm.vendorLocked == true then
-        return;
-    end
 
     if not self:IsVisible() then
         return;
@@ -589,11 +671,11 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
 
                 info.guid = C_Item.GetItemGUID(location)
 
-                if not vm.ignoreItemGuid[info.guid] then
-                    vm.ignoreItemGuid[info.guid] = false;
+                if not self.isItemIgnored[info.guid] then
+                    self.isItemIgnored[info.guid] = false;
                 end
 
-                info.ignore = vm.ignoreItemGuid[info.guid];
+                info.ignore = self.isItemIgnored[info.guid];
 
                 info.bagID = bag;
                 info.slotID = slot;
@@ -628,7 +710,8 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
 
                         slotsQueried = slotsQueried + 1;
                         if slotsQueried == usedSlots then
-                            self:UpdateFilters()
+                            self:IterAllFilters()
+                            self:UpdateVendorFilters()
                         end
 
                     end)
