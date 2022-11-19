@@ -9,7 +9,7 @@ local NUM_PLAYER_BAGS = 4;
 
 local L = vm.locales;
 
-
+vm.ignoreItemGuid = {};
 
 
 VendorMateMixin = {
@@ -155,10 +155,13 @@ function VendorMateMixin:SetupVendorView()
     vendor.vendorAllFilters:SetScript("OnClick", function()
     
         local filters = vendor.tilesGridview:GetFrames()
-        filters[1]:VendorAllItems()
+
+        for k, filter in ipairs(filters) do
+            filter:VendorAllItems()
+        end
 
         -- set this to try vendoring filter 2 as filter 1 was just processed
-        self.nextFilterToVendor = 2
+        -- self.nextFilterToVendor = 2
 
     end)
 
@@ -355,8 +358,11 @@ function VendorMateMixin:Filter_OnAllItemsSold()
     if filters[self.nextFilterToVendor] then
         filters[self.nextFilterToVendor]:VendorAllItems()
         self.nextFilterToVendor = self.nextFilterToVendor + 1;
+
+    else
+        self:UpdateFilters()
     end
-    
+
 end
 
 
@@ -500,9 +506,13 @@ function VendorMateMixin:UpdateFilters()
                 if match then
                     C_Item.LockItemByGUID(item.guid)
                     table.insert(items[filter.pkey], item)
-                    goldAllFilters = goldAllFilters + (item.count * item.vendorPrice)
-                    itemsAllFilters = itemsAllFilters + item.count;
-                    stacksAllFilters = stacksAllFilters + 1;
+
+                    if item.ignore == false then
+                        goldAllFilters = goldAllFilters + (item.count * item.vendorPrice)
+                        itemsAllFilters = itemsAllFilters + item.count;
+                        stacksAllFilters = stacksAllFilters + 1;
+                    end
+
                     itemsFiltered[item.guid] = true;
                 end
             end
@@ -577,10 +587,17 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
 
                 local info = {};
 
+                info.guid = C_Item.GetItemGUID(location)
+
+                if not vm.ignoreItemGuid[info.guid] then
+                    vm.ignoreItemGuid[info.guid] = false;
+                end
+
+                info.ignore = vm.ignoreItemGuid[info.guid];
+
                 info.bagID = bag;
                 info.slotID = slot;
 
-                info.guid = C_Item.GetItemGUID(location)
                 info.count = C_Item.GetStackCount(location)
                 info.inventoryType = C_Item.GetItemInventoryType(location)
                 info.isBound = C_Item.IsBound(location)

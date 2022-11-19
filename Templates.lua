@@ -2,12 +2,46 @@
 
 local addonName, vm = ...;
 
+local L = vm.locales;
+
+
+
+VendorMateHelpTipMixin = {};
+function VendorMateHelpTipMixin:SetText(text)
+    self.text:SetText(text)
+end
+function VendorMateHelpTipMixin:OnShow()
+
+end
+
+
+
+
 VendorMateGridviewItemListviewItemMixin = {}
 
 function VendorMateGridviewItemListviewItemMixin:OnLoad()
 
     self.fade:SetScript("OnFinished", function()
         self:Hide()
+    end)
+
+    self:SetScript("OnEnter", function()
+        if self.item then
+            GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+            GameTooltip:SetHyperlink(self.item.link)
+            GameTooltip:Show()
+        end
+    end)
+    self:SetScript("OnLeave", function()
+        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+    end)
+    self:SetScript("OnMouseDown", function(s, button)
+        if self.item then
+            self.item.ignore = not self.item.ignore;
+            self.ignoreIcon:SetAtlas((self.item.ignore == false) and "common-icon-checkmark" or "common-icon-redx")
+            vm.ignoreItemGuid[self.item.guid] = self.item.ignore;
+            vm:TriggerEvent("Filter_OnChanged")
+        end
     end)
     
 end
@@ -18,29 +52,30 @@ function VendorMateGridviewItemListviewItemMixin:OnItemSold(bagID, slotID)
     end
 end
 
-function VendorMateGridviewItemListviewItemMixin:SetDataBinding(binding)
+function VendorMateGridviewItemListviewItemMixin:SetDataBinding(binding, height)
+
+    self.ignoreIcon:SetSize(height, height)
 
     vm:RegisterCallback("Filter_OnItemSold", self.OnItemSold, self)
 
     self:SetAlpha(1)
+    self:Show()
 
     self.item = binding
+    if vm.ignoreItemGuid[self.item.guid] then
+        self.ignoreIcon:SetAtlas((vm.ignoreItemGuid[self.item.guid] == false) and "common-icon-checkmark" or "common-icon-redx")
+    else
+        self.ignoreIcon:SetAtlas((self.item.ignore == false) and "common-icon-checkmark" or "common-icon-redx")
+    end
 
-    self.text:SetText(binding.link)
-
-    self:SetScript("OnEnter", function()
-        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-        GameTooltip:SetHyperlink(binding.link)
-        GameTooltip:Show()
-    end)
-    self:SetScript("OnLeave", function()
-        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-    end)
+    self.text:SetText(self.item.link)
     
 end
 
 function VendorMateGridviewItemListviewItemMixin:ResetDataBinding()
     self.item = nil;
+    self.text:SetText(nil)
+    self.ignoreIcon:SetTexture(nil)
 end
 
 
@@ -294,20 +329,52 @@ function VendorMateVendorGridviewItemMixin:OnLoad()
 
     self.itemsLocked = true;
 
+    self.settings:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(self.settings, "ANCHOR_TOP")
+        GameTooltip:SetText(L.FILTER_BUTTON_SETTINGS_TT)
+        GameTooltip:Show()
+    end)
+    self.settings:SetScript("OnLeave", function()
+        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+    end)
     self.settings:SetScript("OnClick", function()
         self:InitDropdownMenu()
     end)
 
+    self.deleteFilter:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(self.deleteFilter, "ANCHOR_TOP")
+        GameTooltip:SetText(DELETE)
+        GameTooltip:Show()
+    end)
+    self.deleteFilter:SetScript("OnLeave", function()
+        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+    end)
     self.deleteFilter:SetScript("OnClick", function()
         if self.filter then
             StaticPopup_Show("VendorMateDialogDeleteFilterConfirm", self.filter.name, nil, self.filter)
         end
     end)
 
+    self.vendorItems:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(self.vendorItems, "ANCHOR_TOP")
+        GameTooltip:SetText(L.FILTER_BUTTON_VENDOR_TT)
+        GameTooltip:Show()
+    end)
+    self.vendorItems:SetScript("OnLeave", function()
+        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+    end)
     self.vendorItems:SetScript("OnClick", function()
         self:VendorAllItems()
     end)
 
+    self.lockUnlockItems:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(self.lockUnlockItems, "ANCHOR_TOP")
+        GameTooltip:SetText(L.FILTER_BUTTON_LOCK_TOGGLE_TT)
+        GameTooltip:Show()
+    end)
+    self.lockUnlockItems:SetScript("OnLeave", function()
+        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+    end)
     self.lockUnlockItems:SetScript("OnClick", function()
         self.itemsLocked = not self.itemsLocked;
         self:ToggleItemsLock(self.itemsLocked)
@@ -377,46 +444,55 @@ end
 function VendorMateVendorGridviewItemMixin:VendorAllItems()
     if MerchantFrame:IsVisible() and type(self.items) == "table" then
 
-        vm.vendorLocked = true;
+        if #self.items == 0 then
+            --vm:TriggerEvent("Filter_OnAllItemsSold")
 
-        local i = #self.items;
-        C_Timer.NewTicker(0.2, function()
-            local item = self.items[i]
+        else
 
-            if not item then
-                return;
-            end
+            vm.vendorLocked = true;
 
-            C_Item.UnlockItemByGUID(item.guid)                
-            C_Container.UseContainerItem(item.bagID, item.slotID)
+            local i = #self.items;
+            C_Timer.NewTicker(0.2, function()
+                local item = self.items[i]
+    
+                if not item then
+                    return;
+                end
+    
+                if item.ignore == false then
+    
+                    C_Item.UnlockItemByGUID(item.guid)                
+                    C_Container.UseContainerItem(item.bagID, item.slotID)
+    
+    
+                end
+    
+                i = i - 1;
+    
+                if i == 0 then
+                    self.listview.DataProvider:Flush()
+                    vm.vendorLocked = false;
+    
+                    --vm:TriggerEvent("Filter_OnAllItemsSold")
+                end
+            end, #self.items)
+    
+                -- if popupOverride then
+                --     if StaticPopup1Button1:IsVisible() then
+                --         StaticPopup1Button1:Click()
+                --     end
+                -- end
+        end
 
+    else
+        --vm:TriggerEvent("Filter_OnAllItemsSold")
 
-            -- local f = self.listview.scrollView:FindFrame(item)
-            -- if f then
-            --     f.fade:Play()
-            -- end
-
-            i = i - 1;
-
-            if i == 0 then
-                self.listview.DataProvider:Flush()
-                vm.vendorLocked = false;
-
-                vm:TriggerEvent("Filter_OnAllItemsSold")
-            end
-        end, #self.items)
-
-            -- if popupOverride then
-            --     if StaticPopup1Button1:IsVisible() then
-            --         StaticPopup1Button1:Click()
-            --     end
-            -- end
     end
 end
 
 function VendorMateVendorGridviewItemMixin:SetDataBinding(binding)
     self.filter = binding.filter;
-    self.name:SetText(string.format("%s %s", binding.filter.name, binding.filter.priority))
+    self.name:SetText(string.format("%s [%s]", binding.filter.name, binding.filter.priority))
     --self:UpdateItems(binding.listviewData)
 end
 
@@ -424,7 +500,7 @@ function VendorMateVendorGridviewItemMixin:UpdateItems(items)
     self.items = items;
     local gold = 0;
     for k, item in ipairs(self.items) do
-        if item.count and item.vendorPrice then
+        if item.count and item.vendorPrice and (item.ignore == false) then
             gold = gold + (item.count * item.vendorPrice)
         end
     end
