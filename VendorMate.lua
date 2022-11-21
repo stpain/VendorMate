@@ -74,6 +74,10 @@ function VendorMateMixin:OnLoad()
     --     vm:TriggerEvent("VendorMate_OnHide")
     -- end)
 
+
+    self.content.vendor.tilesGridview = Gridview:New(self.content.vendor.tilesGridviewContainer.scrollChild, "VendorMateVendorGridviewItemTemplate")
+    self.content.vendor.tilesGridview:SetMinMaxWidths(250, 260)
+
 end
 
 function VendorMateMixin:TabView(tabIndex)
@@ -104,9 +108,6 @@ function VendorMateMixin:SetupVendorView()
     vendor.nameArtRight:SetRotation(3.14)
 
     vendor.tilesGridviewContainer.scrollChild:SetSize(vendor:GetWidth(), vendor:GetHeight())
-
-    vendor.tilesGridview = Gridview:New(vendor.tilesGridviewContainer.scrollChild, "VendorMateVendorGridviewItemTemplate")
-    vendor.tilesGridview:SetMinMaxWidths(250, 260)
 
     vendor.newFilterName.label:SetText(ADD_FILTER)
     vendor.newFilterName:SetScript("OntextChanged", function(eb)
