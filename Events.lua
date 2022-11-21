@@ -29,6 +29,8 @@ vm:GenerateCallbackEvents({
     "Filter_OnItemSold",
     "Filter_OnChanged",
     "Filter_OnIgnoredChanged",
+    "Filter_OnVendorStart",
+    "Filter_OnVendorFinished",
 
     "Profile_OnChanged",
     "Profile_OnFilterAdded",

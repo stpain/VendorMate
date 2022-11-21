@@ -14,6 +14,8 @@ VendorMateMixin = {
     playerBags = {},
     isRefreshEnabled = false,
     isItemIgnored = {};
+    isVendoringActive = false;
+    bagLocationToItem = {}
 }
 
 function VendorMateMixin:OnLoad()
@@ -33,6 +35,8 @@ function VendorMateMixin:OnLoad()
     vm:RegisterCallback("Profile_OnFilterAdded", self.Profile_OnFilterAdded, self)
     vm:RegisterCallback("Profile_OnChanged", self.Profile_OnChanged, self)
     vm:RegisterCallback("Filter_OnIgnoredChanged", self.Filter_OnIgnoredChanged, self)
+    vm:RegisterCallback("Filter_OnVendorStart", self.Filter_OnVendorStart, self)
+    vm:RegisterCallback("Filter_OnVendorFinished", self.Filter_OnVendorFinished, self)
 
 
     self:RegisterForDrag("LeftButton")
@@ -61,10 +65,11 @@ function VendorMateMixin:OnLoad()
     end
 
     local function ProcessDetails(bag, slot)
-        vm:TriggerEvent("Filter_OnItemSold", bag, slot)
+        self:OnContainerItemUsed(bag, slot)
     end
 
-    if C_Container and C_Container.UseContainerItem then -- Dragonflight
+    -- keep this incase of classic compat
+    if C_Container and C_Container.UseContainerItem then
         hooksecurefunc(C_Container, "UseContainerItem", ProcessDetails)
     else
         hooksecurefunc(_G, "UseContainerItem", ProcessDetails)
@@ -77,6 +82,23 @@ function VendorMateMixin:OnLoad()
 
     self.content.vendor.tilesGridview = Gridview:New(self.content.vendor.tilesGridviewContainer.scrollChild, "VendorMateVendorGridviewItemTemplate")
     self.content.vendor.tilesGridview:SetMinMaxWidths(250, 260)
+
+
+    self.content.history:SetScript("OnShow", function()
+        self:UpdateHistoryView()
+    end)
+
+end
+
+function VendorMateMixin:OnContainerItemUsed(bag, slot)
+
+    local item = self.bagLocationToItem[string.format("%s-%s", bag, slot)]
+
+    local vendor = MerchantFrameTitleText:GetText() or "-"
+
+    Database:NewTransaction("sold", item.vendorPrice, item.count, self.selectedProfile.pkey, vendor, item.link)
+
+    vm:TriggerEvent("Filter_OnItemSold", bag, slot)
 
 end
 
@@ -157,35 +179,26 @@ function VendorMateMixin:SetupVendorView()
 
     vendor.vendorAllFilters:SetScript("OnClick", function()
 
+        self.isVendoringActive = true;
+
         local vendorItems = {}
+        local numFilters = 0;
+        local gold = 0;
+        local slots = 0;
+        local numItems = 0;
         for filterPkey, items in pairs(self.itemsToVendor) do
-            for k, v in ipairs(items) do
-                table.insert(vendorItems, v)
+            numFilters = numFilters + 1;
+            for k, item in ipairs(items) do
+                if item.ignore == false then
+                    gold = gold + item.count * item.vendorPrice;
+                    slots = slots + 1;
+                    numItems = numItems + item.count;
+                    table.insert(vendorItems, item)
+                end
             end
         end
-        local i = #vendorItems;
-        C_Timer.NewTicker(0.2, function()
-            local item = vendorItems[i]
 
-            if not item then
-                return;
-            end
-
-            if item.ignore == false then
-
-                C_Item.UnlockItemByGUID(item.guid)
-                C_Container.UseContainerItem(item.bagID, item.slotID)
-
-            end
-
-            i = i - 1;
-
-            if i == 0 then
-                self:IterAllFilters()
-                self:UpdateVendorFilters()
-            end
-
-        end, #vendorItems)
+        StaticPopup_Show("VendorMateDialogVendorItemsConfirm", ALL, string.format("%s %s - %s %s - %s %s\n\n%s", numFilters, FILTERS, slots, "Slots", numItems, ITEMS, GetCoinTextureString(gold)) or "-", vendorItems)
 
     end)
 
@@ -209,6 +222,21 @@ function VendorMateMixin:UpdateVendorViewLayout()
     self.content.vendor.newFilterName:SetWidth(vendorWidth / 3)
     self.content.vendor.deleteAllFilters:SetWidth(vendorWidth / 3)
     self.content.vendor.vendorAllFilters:SetWidth(vendorWidth / 3)
+
+    local overridePopup = Database:GetConfig("overridePopup")
+
+end
+
+
+function VendorMateMixin:UpdateHistoryView()
+    
+    local view = self.content.history;
+
+    view.listview.DataProvider = CreateDataProvider()
+    view.listview.scrollView:SetDataProvider(view.listview.DataProvider)
+
+    local history = Database:GetAllTransactions()
+    view.listview.DataProvider:InsertTable(history)
 end
 
 
@@ -228,6 +256,12 @@ function VendorMateMixin:SetupOptionsView()
     end
     options.selectProfileDropdown:SetMenu(t)
     options.selectProfileDropdownLabel:SetText(CHARACTER)
+
+
+    options.overridePopup:SetChecked(Database:GetConfig("overridePopup") or false)
+    options.overridePopup:SetScript("OnClick", function(cb)
+        Database:SetConfig("overridePopup", cb:GetChecked())
+    end)
 
 
     options.resetSavedVariables:SetScript("OnClick", function()
@@ -408,6 +442,19 @@ function VendorMateMixin:Filter_OnIgnoredChanged(item)
 end
 
 
+function VendorMateMixin:Filter_OnVendorStart()
+    self.isVendoringActive = true;
+end
+
+
+function VendorMateMixin:Filter_OnVendorFinished()
+    self.isVendoringActive = false;
+    C_Timer.After(0.5, function()
+        self:PlayerBags_OnItemsChanged()
+    end)
+end
+
+
 
 function VendorMateMixin:UnlockAllBagSlots()
     for k, item in ipairs(self.playerBags) do
@@ -458,7 +505,9 @@ function VendorMateMixin:IterAllFilters()
     local function generateItemClassIdCheck(rule)
         return function(item)
             if rule.classID == "any" then
-                return true
+                return true;
+            elseif rule.classID == "invEquip" and (item.classID == 2 or item.classID == 4) then
+                return true;
             else
                 return item.classID == rule.classID and (rule.subClassID == "any" or item.subClassID == rule.subClassID)
             end
@@ -467,7 +516,9 @@ function VendorMateMixin:IterAllFilters()
     local function generateItemSubClassIdCheck(rule)
         return function(item)
             if rule.subClassID == "any" then
-                return true
+                return true;
+            elseif rule.subClassID == "invEquip" then
+                return true;
             else
                 return (item.classID == rule.classID and item.subClassID == rule.subClassID)
             end
@@ -645,6 +696,13 @@ function VendorMateMixin:UpdateVendorFilters_InfoOnly()
     end
 end
 
+function VendorMateMixin:GetNumUsedBagSlots()
+    local usedSlots = 0;
+    for bag = 0, NUM_PLAYER_BAGS do        
+        usedSlots = usedSlots + (C_Container.GetContainerNumSlots(bag) - C_Container.GetContainerNumFreeSlots(bag))
+    end
+    return usedSlots;
+end
 
 function VendorMateMixin:PlayerBags_OnItemsChanged()
 
@@ -652,12 +710,17 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
         return;
     end
 
-    self.playerBags = {};
+    if self.isVendoringActive then
+        return
+    end
 
-    local usedSlots = 0;
+    self.playerBags = {};
+    self.bagLocationToItem = {};
+
+    self.usedSlots = 0;
     
     for bag = 0, NUM_PLAYER_BAGS do        
-        usedSlots = usedSlots + (C_Container.GetContainerNumSlots(bag) - C_Container.GetContainerNumFreeSlots(bag))
+        self.usedSlots = self.usedSlots + (C_Container.GetContainerNumSlots(bag) - C_Container.GetContainerNumFreeSlots(bag))
     end
     
     local slotsQueried = 0;
@@ -709,8 +772,10 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
 
                         table.insert(self.playerBags, info)
 
+                        self.bagLocationToItem[string.format("%s-%s", bag, slot)] = self.playerBags[#self.playerBags]
+
                         slotsQueried = slotsQueried + 1;
-                        if slotsQueried == usedSlots then
+                        if slotsQueried == self.usedSlots then
                             self:IterAllFilters()
                             self:UpdateVendorFilters()
                         end

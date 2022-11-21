@@ -17,6 +17,31 @@ end
 
 
 
+VendorMateHistoryListviewItemTemplateMixin = {}
+
+function VendorMateHistoryListviewItemTemplateMixin:OnLoad()
+
+end
+
+function VendorMateHistoryListviewItemTemplateMixin:SetDataBinding(binding, height)
+
+    self.icon:SetSize(height - 2, height - 2)
+
+    self.icon:SetTexture(select(5, GetItemInfoInstant(binding.link)))
+
+    local d = date("%y-%m-%d - %H:%M:%S", binding.datetime)
+
+    self.text:SetText(string.format("%s %s %s - x%s %s", d, binding.link, binding.vendor, binding.count, GetCoinTextureString(binding.count * binding.amount)))
+end
+
+function VendorMateHistoryListviewItemTemplateMixin:ResetDataBinding()
+
+end
+
+
+
+
+
 VendorMateGridviewItemListviewItemMixin = {}
 
 function VendorMateGridviewItemListviewItemMixin:OnLoad()
@@ -31,8 +56,6 @@ function VendorMateGridviewItemListviewItemMixin:OnLoad()
         if self.item then
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetHyperlink(self.item.link)
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(tostring(self.item.ignore))
             GameTooltip:Show()
         end
     end)
@@ -171,19 +194,33 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
     end
 
 
-    local classIdMenuList = {}
-    table.insert(classIdMenuList, {
-        text = CLUB_FINDER_ANY_FLAG,
-        func = function()
-            if self.filter then
-                self.filter.rules.classID = "any";
-                self.filter.rules.subClassID = "any";
-                --vm:TriggerEvent("Filter_OnChanged")
+    local classIdMenuList = {
+        {
+            text = CLUB_FINDER_ANY_FLAG,
+            func = function()
+                if self.filter then
+                    self.filter.rules.classID = "any";
+                    self.filter.rules.subClassID = "any";
+                    --vm:TriggerEvent("Filter_OnChanged")
+    
+                    self.subClassDropdown:SetMenu({})
+                end
+            end, 
+        },
+        {
+            text = string.format("%s + %s", GetItemClassInfo(2), GetItemClassInfo(4)),
+            func = function()
+                if self.filter then
+                    self.filter.rules.classID = "invEquip";
+                    self.filter.rules.subClassID = "invEquip";
+                    --vm:TriggerEvent("Filter_OnChanged")
+    
+                    self.subClassDropdown:SetMenu({})
+                end
+            end, 
+        },
+    }
 
-                self.subClassDropdown:SetMenu({})
-            end
-        end,
-    })
     for classID = 0, 19 do
         table.insert(classIdMenuList, {
             text = GetItemClassInfo(classID),
@@ -371,7 +408,7 @@ function VendorMateVendorGridviewItemMixin:OnLoad()
         GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
     end)
     self.vendorItems:SetScript("OnClick", function()
-        self:VendorAllItems()
+        StaticPopup_Show("VendorMateDialogVendorItemsConfirm", self.filter.name, string.format("%s - %s", self.itemCount:GetText() or "-", self.vendorValue:GetText() or "-"), self.items)
     end)
 
     self.lockUnlockItems:SetScript("OnEnter", function()
@@ -445,38 +482,6 @@ function VendorMateVendorGridviewItemMixin:ToggleItemsLock(locked)
 end
 
 
--- loop the tiles items and attempt to vendor each
--- also plays a fade out animation, then flushes the listview
--- applies vendorLock to prevent any tile updates while vendoring
-function VendorMateVendorGridviewItemMixin:VendorAllItems()
-    if MerchantFrame:IsVisible() then
-
-        local i = #self.items;
-        C_Timer.NewTicker(0.2, function()
-            local item = self.items[i]
-
-            if not item then
-                return;
-            end
-
-            if item.ignore == false then
-
-                C_Item.UnlockItemByGUID(item.guid)
-                C_Container.UseContainerItem(item.bagID, item.slotID)
-
-            end
-
-            i = i - 1;
-
-        end, #self.items)
-
-        -- if popupOverride then
-        --     if StaticPopup1Button1:IsVisible() then
-        --         StaticPopup1Button1:Click()
-        --     end
-        -- end
-    end
-end
 
 function VendorMateVendorGridviewItemMixin:SetDataBinding(binding)
     self.filter = binding.filter;

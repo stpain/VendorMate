@@ -8,7 +8,11 @@ function Database:Init()
     if not VendorMateAccount then
         VendorMateAccount = {
             transactions = {},
-            config = {},
+            config = {
+                overridePopup = false;
+                minimapButton = {},
+                currentProfile = false,
+            },
             profiles = {},
         }
     end
@@ -23,7 +27,11 @@ function Database:ResetAddon()
 
     VendorMateAccount = {
         transactions = {},
-        config = {},
+        config = {
+            overridePopup = false;
+            minimapButton = {},
+            currentProfile = false,
+        },
         profiles = {},
     }
 
@@ -61,17 +69,27 @@ function Database:GetConfig(key)
     return self.db.config[key];
 end
 
-function Database:NewTransaction(event, amount, character, vendor)
+function Database:NewTransaction(event, amount, count, character, vendor, link)
     
-    if type(event) == "string" and type(amount) == "number" and type(character) == "string" then
+    if type(event) == "string" and type(amount) == "number" and type(count) == "number" and type(character) == "string" and type(character) == "string" then
         table.insert(VendorMateAccount.transactions, {
             datetime = time(),
             event = event,
             amount = amount,
+            count = count,
             character = character,
             vendor = vendor,
+            link = link,
         })
     end
+end
+
+function Database:GetAllTransactions()
+    local t = {}
+    for k, transaction in ipairs(self.db.transactions) do
+        table.insert(t, transaction)
+    end
+    return t;
 end
 
 function Database:GetTransactions(from, to)
