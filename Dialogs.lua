@@ -22,7 +22,7 @@ StaticPopupDialogs["VendorMateDialogDeleteFilterConfirm"] = {
 }
 
 local function vendorItems(items, overridePopup)
-    if MerchantFrame:IsVisible() then
+    if MerchantFrame:IsVisible() or SendMailFrame:IsVisible() then
         local i = #items;
         C_Timer.NewTicker(0.2, function()
             local item = items[i]

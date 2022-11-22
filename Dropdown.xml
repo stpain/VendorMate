@@ -40,7 +40,6 @@
                 <Layers>
                     <Layer level="OVERLAY" textureSubLevel="7">
                         <FontString parentKey="text" inherits="GameFontNormal" setAllPoints="true">
-                            <Size x="130"/>
                             <Color r="1" g="1" b="1"/>
                             <Anchors>
                                 <Anchor point="CENTER" x="0" y="0"/>

@@ -18,30 +18,29 @@ frames added to the grid can make use of the following methods
 specifically of note is that :UpdateLayout will be called on each frame when calling :UpdateLayout on the gridview itself
 
 ]]
-local GridView = {}
-function GridView:New(parent, itemTemplate)
-
-    local gridview = {
-        parent = parent,
-        data = {},
-        frames = {},
-        itemMinWidth = 0,
-        itemMaxWidth = 0,
-        itemSize = 0,
-        colIndex = 0,
-        rowIndex = 0,
-        numItemsPerRow = 1,
-        framePool = CreateFramePool("FRAME", parent, itemTemplate),
-    }
-
-    return Mixin(gridview, self)
-
+VendorMateGridviewMixin = {}
+function VendorMateGridviewMixin:OnLoad()
+    self.data = {}
+    self.frames = {}
+    self.itemMinWidth = 0
+    self.itemMaxWidth = 0
+    self.itemSize = 0
+    self.colIndex = 0
+    self.rowIndex = 0
+    self.numItemsPerRow = 1
 end
 
---insert a single item into the gridview and draw the frame at the end
-function GridView:Insert(item)
+function VendorMateGridviewMixin:InitFramePool(type, template)
+    self.framePool = CreateFramePool(type, self, template);
+end
 
-    table.insert(self.data, item)
+function VendorMateGridviewMixin:SetMinMaxSize(min, max)
+    self.itemMinWidth = min;
+    self.itemMaxWidth = max;
+end
+
+function VendorMateGridviewMixin:Insert(info)
+    table.insert(self.data, info)
 
     local f = self.framePool:Acquire()
     f:SetID(#self.data)
@@ -54,50 +53,30 @@ function GridView:Insert(item)
     table.insert(self.frames, f)
 
     self:UpdateLayout()
-
-    --print("gridview insert, new frame count", self.framePool:GetNumActive())
-
 end
 
---insert a table and draw the frames
-function GridView:InsertTable(data)
-    
-    self.data = data;
-
-    self:GetItemSize()
-
-    for i = 1, #self.data do
-        local f = self.framePool:Acquire()
-
-        f:SetID(i)
-
-        f:ClearAllPoints()
-        f:SetSize(self.itemSize, self.itemSize)
-
-        if f.SetDataBinding then
-            f:SetDataBinding(self.data[i])
+function VendorMateGridviewMixin:RemoveFrame(frame)
+    local key;
+    for k, f in ipairs(self.frames) do
+        if f:GetID() == frame:GetID() then
+            if f.ResetDataBinding then
+                f:ResetDataBinding()
+            end
+            key = k;
+            self.framePool:Release(f)
         end
-        if f.UpdateLayout then
-            f:UpdateLayout()
-        end
-
-        f:SetPoint("TOPLEFT", self.itemSize * self.colIndex, -(self.itemSize * self.rowIndex))
-        if i < (self.numItemsPerRow * (self.rowIndex + 1)) then
-            self.colIndex = self.colIndex + 1
-        else
-            self.colIndex = 0
-            self.rowIndex = self.rowIndex + 1
-        end
-
-        f:Show()
-        table.insert(self.frames, f)
     end
+    if type(key) == "number" then
+        table.remove(self.frames, key)
+    end
+    self:UpdateLayout()
+end
+
+function VendorMateGridviewMixin:InsertTable(tbl)
 
 end
 
---remove everything and hide
-function GridView:Flush()
-    --print("pre flush release call frame count", self.framePool:GetNumActive())
+function VendorMateGridviewMixin:Flush()
     self.data = {}
     for k, f in ipairs(self.frames) do
         if f.ResetDataBinding then
@@ -105,29 +84,27 @@ function GridView:Flush()
         end
         f:Hide()
     end
-    wipe(self.frames)
     self.frames = {}
     self.framePool:ReleaseAll()
-    --print("post flush release call frame count", self.framePool:GetNumActive())
 end
 
---set the min max widths for items, this is used to calculate a size to use when resizing
-function GridView:SetMinMaxWidths(min, max)
-    self.itemMinWidth = min;
-    self.itemMaxWidth = max;
-end
-
---work out a size for items based on parent width and min max widths
-function GridView:GetItemSize()
-    local width = self.parent:GetWidth()
+function VendorMateGridviewMixin:GetItemSize()
+    local width = self:GetWidth()
 
     local numItemsPerRowMinWidth = width / self.itemMinWidth;
     local numItemsPerRowMaxWidth = width / self.itemMaxWidth;
 
     self.numItemsPerRow =  math.ceil(((numItemsPerRowMinWidth + numItemsPerRowMaxWidth) / 2))
-    --self.numItemsPerRow =  math.ceil(width / self.itemMinWidth)
 
     self.itemSize = (width / self.numItemsPerRow)
+
+    --[[
+        this next bit was a first attempt to fix the min/max sizes
+        however having a fixed size means the items wont always 
+        adjust to fill each row, so leaving the older math in place
+    ]]
+
+    --self.numItemsPerRow =  math.ceil(width / self.itemMinWidth)
 
     -- if self.itemSize < self.itemMinWidth then
     --     self.itemSize = (width / (self.numItemsPerRow - 1))
@@ -136,12 +113,9 @@ function GridView:GetItemSize()
     --     self.itemSize = self.itemMaxWidth
     --     self.numItemsPerRow =  math.floor(width / self.itemMaxWidth)
     -- end
-
 end
 
---update the layout
-function GridView:UpdateLayout()
-
+function VendorMateGridviewMixin:UpdateLayout()
     self:GetItemSize()
 
     self.colIndex = 0;
@@ -162,30 +136,8 @@ function GridView:UpdateLayout()
         end
         f:Show()
     end
-
 end
 
---questionable option
-function GridView:GetFrames()
+function VendorMateGridviewMixin:GetFrames()
     return self.frames;
 end
-
-
-function GridView:RemoveFrame(frame)
-    local key;
-    for k, f in ipairs(self.frames) do
-        if f:GetID() == frame:GetID() then
-            if f.ResetDataBinding then
-                f:ResetDataBinding()
-            end
-            key = k;
-            self.framePool:Release(f)
-        end
-    end
-    if type(key) == "number" then
-        table.remove(self.frames, key)
-    end
-    self:UpdateLayout()
-end
-
-addon.gridview = GridView;

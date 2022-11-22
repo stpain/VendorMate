@@ -411,6 +411,13 @@ function VendorMateVendorGridviewItemMixin:OnLoad()
         StaticPopup_Show("VendorMateDialogVendorItemsConfirm", self.filter.name, string.format("%s - %s", self.itemCount:GetText() or "-", self.vendorValue:GetText() or "-"), self.items)
     end)
 
+    SendMailFrame:HookScript("OnShow", function()
+        self.vendorItems:GetNormalTexture():SetAtlas("UI-HUD-Minimap-Mail-Up")
+    end)
+    SendMailFrame:HookScript("OnHide", function()
+        self.vendorItems:GetNormalTexture():SetAtlas("Banker")
+    end)
+
     self.lockUnlockItems:SetScript("OnEnter", function()
         GameTooltip:SetOwner(self.lockUnlockItems, "ANCHOR_TOP")
         GameTooltip:SetText(L.FILTER_BUTTON_LOCK_TOGGLE_TT)

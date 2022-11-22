@@ -15,7 +15,8 @@ VendorMateMixin = {
     isRefreshEnabled = false,
     isItemIgnored = {};
     isVendoringActive = false;
-    bagLocationToItem = {}
+    bagLocationToItem = {},
+    playerGold = 0,
 }
 
 function VendorMateMixin:OnLoad()
@@ -27,6 +28,7 @@ function VendorMateMixin:OnLoad()
     end
 
     vm:RegisterCallback("Player_OnEnteringWorld", self.Player_OnEnteringWorld, self)
+    vm:RegisterCallback("Player_OnMoneyChanged", self.Player_OnMoneyChanged, self)
     vm:RegisterCallback("Merchant_OnShow", self.Merchant_OnShow, self)
     vm:RegisterCallback("Merchant_OnHide", self.Merchant_OnHide, self)
     vm:RegisterCallback("PlayerBags_OnItemsChanged", self.PlayerBags_OnItemsChanged, self)
@@ -75,13 +77,8 @@ function VendorMateMixin:OnLoad()
         hooksecurefunc(_G, "UseContainerItem", ProcessDetails)
     end
 
-    -- self:SetScript("OnHide", function()
-    --     vm:TriggerEvent("VendorMate_OnHide")
-    -- end)
-
-
-    self.content.vendor.tilesGridview = Gridview:New(self.content.vendor.tilesGridviewContainer.scrollChild, "VendorMateVendorGridviewItemTemplate")
-    self.content.vendor.tilesGridview:SetMinMaxWidths(250, 260)
+    self.content.vendor.filterGridview:InitFramePool("FRAME", "VendorMateVendorGridviewItemTemplate")
+    self.content.vendor.filterGridview:SetMinMaxSize(250, 260)
 
 
     self.content.history:SetScript("OnShow", function()
@@ -90,15 +87,27 @@ function VendorMateMixin:OnLoad()
 
 end
 
+function VendorMateMixin:Player_OnMoneyChanged(gold)
+    
+end
+
 function VendorMateMixin:OnContainerItemUsed(bag, slot)
 
     local item = self.bagLocationToItem[string.format("%s-%s", bag, slot)]
 
-    local vendor = MerchantFrameTitleText:GetText() or "-"
+    if not item then
+        return;
+    end
 
-    Database:NewTransaction("sold", item.vendorPrice, item.count, self.selectedProfile.pkey, vendor, item.link)
+    if MerchantFrame:IsVisible() then
 
-    vm:TriggerEvent("Filter_OnItemSold", bag, slot)
+        local vendor = MerchantFrameTitleText:GetText() or "-"
+
+        Database:NewTransaction("sold", item.vendorPrice, item.count, self.selectedProfile.pkey, vendor, item.link)
+
+        vm:TriggerEvent("Filter_OnItemSold", bag, slot)
+
+    end
 
 end
 
@@ -127,9 +136,17 @@ function VendorMateMixin:SetupVendorView()
 
     local vendor = self.content.vendor;
 
-    vendor.nameArtRight:SetRotation(3.14)
-
-    vendor.tilesGridviewContainer.scrollChild:SetSize(vendor:GetWidth(), vendor:GetHeight())
+    local profiles = Database:GetProfiles()
+    local t = {}
+    for k, profile in ipairs(profiles) do
+        table.insert(t, {
+            text = profile.pkey,
+            func = function()
+                vm:TriggerEvent("Profile_OnChanged", profile)
+            end
+        })
+    end
+    vendor.selectProfileDropdown:SetMenu(t)
 
     vendor.newFilterName.label:SetText(ADD_FILTER)
     vendor.newFilterName:SetScript("OntextChanged", function(eb)
@@ -213,9 +230,7 @@ end
 
 
 function VendorMateMixin:UpdateVendorViewLayout()
-    local vendorGridviewWidth = self.content.vendor.tilesGridviewContainer:GetWidth()
-    self.content.vendor.tilesGridviewContainer.scrollChild:SetWidth(vendorGridviewWidth)
-    self.content.vendor.tilesGridview:UpdateLayout()
+    self.content.vendor.filterGridview:UpdateLayout()
 
     local vendorWidth = self.content.vendor:GetWidth()
     vendorWidth = vendorWidth - 26
@@ -244,19 +259,6 @@ function VendorMateMixin:SetupOptionsView()
 
     local options = self.content.options;
 
-    local profiles = Database:GetProfiles()
-    local t = {}
-    for k, profile in ipairs(profiles) do
-        table.insert(t, {
-            text = profile.pkey,
-            func = function()
-                vm:TriggerEvent("Profile_OnChanged", profile)
-            end
-        })
-    end
-    options.selectProfileDropdown:SetMenu(t)
-    options.selectProfileDropdownLabel:SetText(CHARACTER)
-
 
     options.overridePopup:SetChecked(Database:GetConfig("overridePopup") or false)
     options.overridePopup:SetScript("OnClick", function(cb)
@@ -279,9 +281,9 @@ function VendorMateMixin:SetupOptionsView()
                 end
             })
         end
-        options.selectProfileDropdown:SetMenu(t)
+        self.content.vendor.selectProfileDropdown:SetMenu(t)
 
-        self.content.vendor.tilesGridview:Flush()
+        self.content.vendor.filterGridview:Flush()
     end)
 
 
@@ -367,14 +369,15 @@ end
 
 function VendorMateMixin:Profile_OnChanged(newProfile)
     self.selectedProfile = newProfile;
-    self.content.vendor.name:SetText(self.selectedProfile.pkey)
 
-    if self.content.vendor.tilesGridview then
-        self.content.vendor.tilesGridview:Flush()
+    self.content.vendor.selectProfileDropdown.label.text:SetText(self.selectedProfile.pkey)
+
+    if self.content.vendor.filterGridview then
+        self.content.vendor.filterGridview:Flush()
 
         local filters = self.selectedProfile.vendor.filters;
         for k, filter in ipairs(filters) do
-            self.content.vendor.tilesGridview:Insert({
+            self.content.vendor.filterGridview:Insert({
                 filter = filter,
             })
         end
@@ -386,7 +389,7 @@ end
 
 function VendorMateMixin:Profile_OnFilterAdded(filter)
 
-    self.content.vendor.tilesGridview:Insert({
+    self.content.vendor.filterGridview:Insert({
         filter = filter,
     })
 
@@ -419,7 +422,7 @@ function VendorMateMixin:Profile_OnFilterRemoved(filter)
             end
         end
 
-        local gridview = self.content.vendor.tilesGridview
+        local gridview = self.content.vendor.filterGridview
         for k, tile in ipairs(gridview:GetFrames()) do
             if filter.pkey == tile:GetFilterPkey() then
                 gridview:RemoveFrame(tile)
@@ -641,7 +644,7 @@ end
 
 
 function VendorMateMixin:UpdateVendorFilters()
-    local gridviewItems = self.content.vendor.tilesGridview:GetFrames()
+    local gridviewItems = self.content.vendor.filterGridview:GetFrames()
     for k, tile in ipairs(gridviewItems) do
         local pkey = tile:GetFilterPkey()
         if self.itemsToVendor[pkey] then
@@ -671,7 +674,7 @@ end
 
 
 function VendorMateMixin:UpdateVendorFilters_InfoOnly()
-    local gridviewItems = self.content.vendor.tilesGridview:GetFrames()
+    local gridviewItems = self.content.vendor.filterGridview:GetFrames()
     for k, tile in ipairs(gridviewItems) do
         local pkey = tile:GetFilterPkey()
         if self.itemsToVendor[pkey] then

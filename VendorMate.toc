@@ -9,6 +9,7 @@ Locales.lua
 Database.lua
 
 GridView.lua
+GridView.xml
 
 Listview.lua
 Listview.xml

@@ -22,6 +22,7 @@ vm:GenerateCallbackEvents({
 
     "Player_OnEnteringWorld",
     "PlayerBags_OnItemsChanged",
+    "Player_OnMoneyChanged",
 
     "Merchant_OnShow",
     "Merchant_OnHide",
@@ -63,6 +64,10 @@ function f:PLAYER_ENTERING_WORLD()
     })
 end
 
+function f:PLAYER_MONEY(...)
+    vm:TriggerEvent("Player_OnMoneyChanged", GetMoney())
+end
+
 function f:MERCHANT_SHOW(...)
     vm:TriggerEvent("Merchant_OnShow")
 end
@@ -89,6 +94,7 @@ end
 
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
+f:RegisterEvent("PLAYER_MONEY")
 f:RegisterEvent('BAG_UPDATE_DELAYED')
 f:RegisterEvent('MERCHANT_SHOW')
 f:RegisterEvent('MERCHANT_CLOSED')
