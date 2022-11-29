@@ -32,6 +32,7 @@ vm:GenerateCallbackEvents({
     "Filter_OnIgnoredChanged",
     "Filter_OnVendorStart",
     "Filter_OnVendorFinished",
+    "Filter_OnItemsAddedToMail",
 
     "Profile_OnChanged",
     "Profile_OnFilterAdded",

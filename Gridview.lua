@@ -31,7 +31,7 @@ function VendorMateGridviewMixin:OnLoad()
 end
 
 function VendorMateGridviewMixin:InitFramePool(type, template)
-    self.framePool = CreateFramePool(type, self, template);
+    self.framePool = CreateFramePool(type, self.scrollChild, template);
 end
 
 function VendorMateGridviewMixin:SetMinMaxSize(min, max)
@@ -120,6 +120,9 @@ function VendorMateGridviewMixin:UpdateLayout()
 
     self.colIndex = 0;
     self.rowIndex = 0;
+
+    local w, h = self:GetSize()
+    self.scrollChild:SetSize(w, h)
 
     for k, f in ipairs(self.frames) do
         f:ClearAllPoints()

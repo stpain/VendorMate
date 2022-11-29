@@ -88,6 +88,13 @@
                     <Anchor point="TOPRIGHT" x="-8" y="-4"/>
                 </Anchors>
             </Button>
+            <Button parentKey="help">
+                <Size x="20" y="20"/>
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="6" y="-4"/>
+                </Anchors>
+                <NormalTexture atlas="glueannouncementpopup-icon-info"/>
+            </Button>
 
             <Button name="$parentTab1" parentKey="tab1" parentArray="tabs" inherits="PanelTabButtonTemplate" id="1">
                 <Anchors>
@@ -187,6 +194,20 @@
                                 </Anchors>
                             </ScrollFrame>
 
+                            <Frame parentKey="filterHelptip" parentArray="helptips" inherits="VendorMateHelpTipTemplate_RightArrow" hidden="true">
+                                <Size x="160" y="180"/>
+                                <Anchors>
+                                    <Anchor point="RIGHT" relativePoint="LEFT" x="-20" y="0"/>
+                                </Anchors>
+                            </Frame>
+
+                            <Frame parentKey="profileSelectHelptip" parentArray="helptips" inherits="VendorMateHelpTipTemplate_BottomArrow" hidden="true">
+                                <Size x="200" y="100"/>
+                                <Anchors>
+                                    <Anchor point="BOTTOM" relativePoint="TOP" x="0" y="10"/>
+                                </Anchors>
+                            </Frame>
+
                         </Frames>
                     </Frame>
 
@@ -211,7 +232,13 @@
 
                         <Layers>
                             <Layer level="OVERLAY">
-
+                                <FontString parentKey="helpAbout" inherits="GameFontNormal" justifyV="TOP" justifyH="LEFT">
+                                    <Color r="1" g="1" b="1" a="1"/>
+                                    <Anchors>
+                                        <Anchor point="TOPLEFT" x="16" y="-32"/>
+                                        <Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
+                                    </Anchors>
+                                </FontString>
                             </Layer>
                         </Layers>
 

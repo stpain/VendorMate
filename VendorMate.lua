@@ -16,6 +16,7 @@ VendorMateMixin = {
     isItemIgnored = {};
     isVendoringActive = false;
     bagLocationToItem = {},
+    bagLinkToItem = {},
     playerGold = 0,
 }
 
@@ -39,6 +40,7 @@ function VendorMateMixin:OnLoad()
     vm:RegisterCallback("Filter_OnIgnoredChanged", self.Filter_OnIgnoredChanged, self)
     vm:RegisterCallback("Filter_OnVendorStart", self.Filter_OnVendorStart, self)
     vm:RegisterCallback("Filter_OnVendorFinished", self.Filter_OnVendorFinished, self)
+    vm:RegisterCallback("Filter_OnItemsAddedToMail", self.Filter_OnItemsAddedToMail, self)
 
 
     self:RegisterForDrag("LeftButton")
@@ -66,6 +68,14 @@ function VendorMateMixin:OnLoad()
         end)
     end
 
+    self.help:SetScript("OnMouseDown", function()
+        
+        for k, tip in ipairs(self.content.vendor.helptips) do
+            tip:SetShown(not tip:IsVisible())
+        end
+
+    end)
+
     local function ProcessDetails(bag, slot)
         self:OnContainerItemUsed(bag, slot)
     end
@@ -77,6 +87,18 @@ function VendorMateMixin:OnLoad()
         hooksecurefunc(_G, "UseContainerItem", ProcessDetails)
     end
 
+
+    -- hooksecurefunc(_G, "MerchantFrame_UpdateBuybackInfo", function()
+    
+    --     local buyBackLink = GetBuybackItemLink(GetNumBuybackItems())
+
+    --     local item = self.bagLinkToItem[buyBackLink]
+    --     if item then
+    --         vm:TriggerEvent("Filter_OnItemSold", item.bagID, item.slotID)
+    --     end
+
+    -- end)
+
     self.content.vendor.filterGridview:InitFramePool("FRAME", "VendorMateVendorGridviewItemTemplate")
     self.content.vendor.filterGridview:SetMinMaxSize(250, 260)
 
@@ -86,6 +108,7 @@ function VendorMateMixin:OnLoad()
     end)
 
 end
+
 
 function VendorMateMixin:Player_OnMoneyChanged(gold)
     
@@ -104,6 +127,7 @@ function VendorMateMixin:OnContainerItemUsed(bag, slot)
         local vendor = MerchantFrameTitleText:GetText() or "-"
 
         Database:NewTransaction("sold", item.vendorPrice, item.count, self.selectedProfile.pkey, vendor, item.link)
+
 
         vm:TriggerEvent("Filter_OnItemSold", bag, slot)
 
@@ -135,6 +159,9 @@ end
 function VendorMateMixin:SetupVendorView()
 
     local vendor = self.content.vendor;
+
+    vendor.filterHelptip:SetText(L.HELPTIP_VENDOR_FILTERS)
+    vendor.profileSelectHelptip:SetText(L.HELPTIP_VENDOR_PROFILES)
 
     local profiles = Database:GetProfiles()
     local t = {}
@@ -259,6 +286,7 @@ function VendorMateMixin:SetupOptionsView()
 
     local options = self.content.options;
 
+    options.helpAbout:SetText(L.HELP_ABOUT)
 
     options.overridePopup:SetChecked(Database:GetConfig("overridePopup") or false)
     options.overridePopup:SetScript("OnClick", function(cb)
@@ -381,6 +409,9 @@ function VendorMateMixin:Profile_OnChanged(newProfile)
                 filter = filter,
             })
         end
+
+        self:IterAllFilters()
+        self:UpdateVendorFilters()
     end
 
     Database:SetConfig("currentProfile", newProfile.pkey)
@@ -458,6 +489,11 @@ function VendorMateMixin:Filter_OnVendorFinished()
 end
 
 
+function VendorMateMixin:Filter_OnItemsAddedToMail()
+    self.isVendoringActive = false;
+end
+
+
 
 function VendorMateMixin:UnlockAllBagSlots()
     for k, item in ipairs(self.playerBags) do
@@ -466,7 +502,7 @@ function VendorMateMixin:UnlockAllBagSlots()
 end
 
 
--- iter all filters and return a table of items, sorted into filters
+-- iter all filters 
 function VendorMateMixin:IterAllFilters()
 
     -- first unlock all items
@@ -776,6 +812,7 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
                         table.insert(self.playerBags, info)
 
                         self.bagLocationToItem[string.format("%s-%s", bag, slot)] = self.playerBags[#self.playerBags]
+                        self.bagLinkToItem[info.link] = self.playerBags[#self.playerBags]
 
                         slotsQueried = slotsQueried + 1;
                         if slotsQueried == self.usedSlots then

@@ -387,7 +387,7 @@ function VendorMateVendorGridviewItemMixin:OnLoad()
 
     self.deleteFilter:SetScript("OnEnter", function()
         GameTooltip:SetOwner(self.deleteFilter, "ANCHOR_TOP")
-        GameTooltip:SetText(DELETE)
+        GameTooltip:SetText(string.format("%s %s", DELETE, FILTER))
         GameTooltip:Show()
     end)
     self.deleteFilter:SetScript("OnLeave", function()

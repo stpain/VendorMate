@@ -47,7 +47,12 @@ local function vendorItems(items, overridePopup)
             i = i - 1;
 
             if i == 0 then
-                vm:TriggerEvent("Filter_OnVendorFinished")
+                if MerchantFrame:IsVisible() then
+                    vm:TriggerEvent("Filter_OnVendorFinished")
+
+                elseif SendMailFrame:IsVisible() then
+                    vm:TriggerEvent("Filter_OnItemsAddedToMail")
+                end
             end
 
         end, #items)
