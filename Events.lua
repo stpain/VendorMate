@@ -20,6 +20,8 @@ end
 Mixin(vm, CallbackRegistryMixin)
 vm:GenerateCallbackEvents({
 
+    "Database_OnInitialised",
+
     "Player_OnEnteringWorld",
     "PlayerBags_OnItemsChanged",
     "Player_OnMoneyChanged",
@@ -35,6 +37,7 @@ vm:GenerateCallbackEvents({
     "Filter_OnItemsAddedToMail",
 
     "Profile_OnChanged",
+    "Profile_OnDelete",
     "Profile_OnFilterAdded",
     "Profile_OnFilterRemoved",
 

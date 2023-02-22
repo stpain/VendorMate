@@ -28,6 +28,7 @@ function VendorMateMixin:OnLoad()
         self:Show()
     end
 
+    vm:RegisterCallback("Database_OnInitialised", self.Database_OnInitialised, self)
     vm:RegisterCallback("Player_OnEnteringWorld", self.Player_OnEnteringWorld, self)
     vm:RegisterCallback("Player_OnMoneyChanged", self.Player_OnMoneyChanged, self)
     vm:RegisterCallback("Merchant_OnShow", self.Merchant_OnShow, self)
@@ -37,6 +38,7 @@ function VendorMateMixin:OnLoad()
     vm:RegisterCallback("Profile_OnFilterRemoved", self.Profile_OnFilterRemoved, self)
     vm:RegisterCallback("Profile_OnFilterAdded", self.Profile_OnFilterAdded, self)
     vm:RegisterCallback("Profile_OnChanged", self.Profile_OnChanged, self)
+    vm:RegisterCallback("Profile_OnDelete", self.Profile_OnDelete, self)
     vm:RegisterCallback("Filter_OnIgnoredChanged", self.Filter_OnIgnoredChanged, self)
     vm:RegisterCallback("Filter_OnVendorStart", self.Filter_OnVendorStart, self)
     vm:RegisterCallback("Filter_OnVendorFinished", self.Filter_OnVendorFinished, self)
@@ -109,6 +111,10 @@ function VendorMateMixin:OnLoad()
 
 end
 
+function VendorMateMixin:Database_OnInitialised()
+    Database:AddConfig("autoVendorJunk", false)
+end
+
 
 function VendorMateMixin:Player_OnMoneyChanged(gold)
     
@@ -155,14 +161,7 @@ function VendorMateMixin:OnUpdate()
     self:UpdateVendorViewLayout()
 end
 
-
-function VendorMateMixin:SetupVendorView()
-
-    local vendor = self.content.vendor;
-
-    vendor.filterHelptip:SetText(L.HELPTIP_VENDOR_FILTERS)
-    vendor.profileSelectHelptip:SetText(L.HELPTIP_VENDOR_PROFILES)
-
+function VendorMateMixin:UpdateVendorViewProfileDropdown()
     local profiles = Database:GetProfiles()
     local t = {}
     for k, profile in ipairs(profiles) do
@@ -173,7 +172,23 @@ function VendorMateMixin:SetupVendorView()
             end
         })
     end
-    vendor.selectProfileDropdown:SetMenu(t)
+    self.content.vendor.selectProfileDropdown:SetMenu(t)
+end
+
+function VendorMateMixin:SetupVendorView()
+
+    local vendor = self.content.vendor;
+
+    vendor.filterHelptip:SetText(L.HELPTIP_VENDOR_FILTERS)
+    vendor.profileSelectHelptip:SetText(L.HELPTIP_VENDOR_PROFILES)
+
+    self:UpdateVendorViewProfileDropdown()
+
+    vendor.deleteProfile:SetScript("OnClick", function()
+        if self.selectedProfile then
+            StaticPopup_Show("VendorMateDialogDeleteProfileConfirm", self.selectedProfile.pkey, nil, self.selectedProfile)
+        end
+    end)
 
     vendor.newFilterName.label:SetText(ADD_FILTER)
     vendor.newFilterName:SetScript("OntextChanged", function(eb)
@@ -219,6 +234,15 @@ function VendorMateMixin:SetupVendorView()
     vendor.addFilter:SetScript("OnClick", addFilter)
 
     vendor.deleteAllFilters:SetText(string.format("%s %s", DELETE, FILTERS))
+
+    vendor.deleteAllFilters:SetScript("OnClick", function()
+        if type(self.selectedProfile) == "table" then
+            self.selectedProfile.filters = {};
+            self.content.vendor.filterGridview:Flush()
+        end
+    end)
+
+
     vendor.vendorAllFilters:SetText(string.format("%s %s", TRANSMOG_SOURCE_3, ALL))
 
     vendor.vendorAllFilters:SetScript("OnClick", function()
@@ -265,7 +289,7 @@ function VendorMateMixin:UpdateVendorViewLayout()
     self.content.vendor.deleteAllFilters:SetWidth(vendorWidth / 3)
     self.content.vendor.vendorAllFilters:SetWidth(vendorWidth / 3)
 
-    local overridePopup = Database:GetConfig("overridePopup")
+    local autoVendorJunk = Database:GetConfig("autoVendorJunk")
 
 end
 
@@ -288,16 +312,34 @@ function VendorMateMixin:SetupOptionsView()
 
     options.helpAbout:SetText(L.HELP_ABOUT)
 
-    options.overridePopup:SetChecked(Database:GetConfig("overridePopup") or false)
-    options.overridePopup:SetScript("OnClick", function(cb)
-        Database:SetConfig("overridePopup", cb:GetChecked())
+    options.newProfile:SetScript("OnTextChanged", function(eb)
+        if #eb:GetText() > 0 then
+            eb.addProfile:Show()
+            eb.label:Hide()
+        else
+            eb.addProfile:Hide()
+            eb.label:Show()
+        end
+    end)
+    options.newProfile.addProfile:SetScript("OnClick", function()
+        local text = options.newProfile:GetText()
+        if #text > 0 and text ~= " " then
+            self:GenerateProfile(text)
+            options.newProfile:SetText("")
+        end
+    end)
+
+    options.autoVendorJunk.label:SetText(L.AUTO_VENDOR_JUNK)
+    options.autoVendorJunk:SetChecked(Database:GetConfig("autoVendorJunk") or false)
+    options.autoVendorJunk:SetScript("OnClick", function(cb)
+        Database:SetConfig("autoVendorJunk", cb:GetChecked())
     end)
 
 
     options.resetSavedVariables:SetScript("OnClick", function()
         
         Database:ResetAddon()
-        self:GenerateDefaultProfile()
+        self:GenerateProfile()
 
         local profiles = Database:GetProfiles()
         local t = {}
@@ -317,18 +359,22 @@ function VendorMateMixin:SetupOptionsView()
 
 end
 
-function VendorMateMixin:GenerateDefaultProfile()
+function VendorMateMixin:GenerateProfile(profileName)
 
-    local defaultPrimaryKey = string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT);
+    if not profileName then
+        profileName = CHAT_DEFAULT
+    end
+
+    local profilePk = string.format("%s.%s.%s", self.character.name, self.character.realm, profileName);
     local defaultProfileExists = false;
     for k, profile in ipairs(Database:GetProfiles()) do
-        if profile.pkey == defaultPrimaryKey then
+        if profile.pkey == profilePk then
             defaultProfileExists = true;
         end
     end
     if defaultProfileExists == false then
         Database:NewProfile({
-            pkey = defaultPrimaryKey,
+            pkey = profilePk,
             class = self.character.class,
             name = self.character.name,
             vendor = {
@@ -355,6 +401,7 @@ function VendorMateMixin:GenerateDefaultProfile()
             },
             history = {},
         })
+        self:UpdateVendorViewProfileDropdown()
     end
 
 end
@@ -366,7 +413,7 @@ function VendorMateMixin:Player_OnEnteringWorld(character)
     self:SetupVendorView()
     self:SetupOptionsView()
 
-    self:GenerateDefaultProfile()
+    self:GenerateProfile()
 
     local defaultProfile = Database:GetProfile(string.format("%s.%s.%s", character.name, character.realm, CHAT_DEFAULT))
     vm:TriggerEvent("Profile_OnChanged", defaultProfile)
@@ -386,6 +433,11 @@ function VendorMateMixin:Merchant_OnShow()
     self:Show()
     PanelTemplates_SetTab(self, 1);
     self:UpdateVendorViewLayout()
+
+    local autoVendorJunk = Database:GetConfig("autoVendorJunk")
+    if autoVendorJunk == true then
+        
+    end
 end
 
 
@@ -394,6 +446,16 @@ function VendorMateMixin:Merchant_OnHide()
     self:Hide()
 end
 
+function VendorMateMixin:Profile_OnDelete(profile)
+    Database:DeleteProfile(profile)
+    self:UpdateVendorViewProfileDropdown()
+
+    local profiles = Database:GetProfiles()
+    if #profiles == 0 then
+        self:GenerateProfile()
+    end
+    self:Profile_OnChanged(profiles[#profiles])
+end
 
 function VendorMateMixin:Profile_OnChanged(newProfile)
     self.selectedProfile = newProfile;

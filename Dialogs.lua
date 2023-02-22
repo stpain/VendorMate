@@ -21,6 +21,23 @@ StaticPopupDialogs["VendorMateDialogDeleteFilterConfirm"] = {
     showAlert = 1,
 }
 
+StaticPopupDialogs["VendorMateDialogDeleteProfileConfirm"] = {
+    text = string.format("%s %s", DELETE, "%s"),
+    button1 = DELETE,
+    button2 = CANCEL,
+    OnAccept = function(self, profile)
+        vm:TriggerEvent("Profile_OnDelete", profile)
+    end,
+    OnCancel = function(self)
+
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = false,
+    preferredIndex = 3,
+    showAlert = 1,
+}
+
 local function vendorItems(items, overridePopup)
     if MerchantFrame:IsVisible() or SendMailFrame:IsVisible() then
         local i = #items;

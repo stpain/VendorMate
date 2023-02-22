@@ -9,9 +9,10 @@ function Database:Init()
         VendorMateAccount = {
             transactions = {},
             config = {
-                overridePopup = false;
+                overridePopup = false,
                 minimapButton = {},
                 currentProfile = false,
+                autoVendorJunk = false,
             },
             profiles = {},
         }
@@ -19,6 +20,18 @@ function Database:Init()
 
     self.db = VendorMateAccount;
 
+    vm:TriggerEvent("Database_OnInitialised")
+
+end
+
+function Database:AddConfig(key, val)
+    if self.db and self.db.config then
+        if not self.db.config[key] then
+            self.db.config[key] = val
+        else
+            print(string.format("[%s] config %s exists", addonName, key))
+        end
+    end
 end
 
 function Database:ResetAddon()
@@ -41,6 +54,20 @@ end
 function Database:NewProfile(profile)
     if self.db then
         table.insert(self.db.profiles, profile)
+    end
+end
+
+function Database:DeleteProfile(profile)
+    if self.db and self.db.profiles then
+        local i;
+        for k, v in ipairs(self.db.profiles) do
+            if v.pkey == profile.pkey then
+                i = k;
+            end
+        end
+        if i then
+            table.remove(self.db.profiles, i)
+        end
     end
 end
 
