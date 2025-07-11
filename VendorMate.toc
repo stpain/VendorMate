@@ -1,6 +1,6 @@
 ## Name: VendorMate
 ## Version: 1.1
-## Interface: 100005
+## Interface: 110107
 ## Notes: Vendor friend for your WoW adventures 
 ## SavedVariables: VendorMateAccount
 
