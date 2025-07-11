@@ -39,6 +39,9 @@ StaticPopupDialogs["VendorMateDialogDeleteProfileConfirm"] = {
 }
 
 local function vendorItems(items, overridePopup)
+
+    vm:TriggerEvent("Vendor_OnTransactionStart")
+
     if MerchantFrame:IsVisible() or SendMailFrame:IsVisible() then
         local i = #items;
         C_Timer.NewTicker(0.2, function()
@@ -66,6 +69,7 @@ local function vendorItems(items, overridePopup)
             if i == 0 then
                 if MerchantFrame:IsVisible() then
                     vm:TriggerEvent("Filter_OnVendorFinished")
+                    vm:TriggerEvent("Vendor_OnTransactionFinish")
 
                 elseif SendMailFrame:IsVisible() then
                     vm:TriggerEvent("Filter_OnItemsAddedToMail")

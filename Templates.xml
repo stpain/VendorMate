@@ -1,77 +1,5 @@
 <Ui>
 
-    <Frame name="VendorMateHelpTipTemplate_BottomArrow" inherits="GlowBoxTemplate" mixin="VendorMateHelpTipMixin" virtual="true" enableMouse="true" frameStrata="TOOLTIP">
-		<Layers>
-			<Layer level="OVERLAY">
-				<FontString parentKey="text" inherits="GameFontHighlightLeft" justifyH="LEFT" justifyV="TOP">
-                    <Anchors>
-                        <Anchor point="TOPLEFT" x="5" y="-5"/>
-                        <Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
-                    </Anchors>
-                </FontString>
-			</Layer>
-		</Layers>
-		<Frames>
-			<Frame parentKey="Arrow" inherits="GlowBoxArrowTemplate">
-				<Size x="61" y="61"/>
-				<Anchors>
-					<Anchor point="BOTTOM" x="0" y="-60"/>
-				</Anchors>
-			</Frame>
-		</Frames>
-		<Scripts>
-			<OnShow method="OnShow"/>
-		</Scripts>
-	</Frame>
-
-	<Frame name="VendorMateHelpTipTemplate_RightArrow" inherits="GlowBoxTemplate" mixin="VendorMateHelpTipMixin" virtual="true" enableMouse="true" frameStrata="TOOLTIP">
-		<Layers>
-			<Layer level="OVERLAY">
-				<FontString parentKey="text" inherits="GameFontHighlightLeft" justifyH="LEFT" justifyV="TOP">
-                    <Anchors>
-                        <Anchor point="TOPLEFT" x="5" y="-5"/>
-                        <Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
-                    </Anchors>
-                </FontString>
-            </Layer>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="background">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="1" y="-1"/>
-						<Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
-					</Anchors>
-					<Color r="1" g="1" b="1"/>
-					<Gradient orientation="VERTICAL">
-						<MaxColor r="0.23" g="0.19" b="0"/>
-						<MinColor r="0" g="0" b="0"/>
-					</Gradient>
-				</Texture>
-			</Layer>
-		</Layers>
-		<Frames>
-			<Frame parentKey="Arrow" inherits="GlowBoxArrowTemplate">
-				<Size x="61" y="61"/>
-				<Anchors>
-					<Anchor point="BOTTOM" relativePoint="TOP" x="0" y="-30"/>
-				</Anchors>
-			</Frame>
-		</Frames>
-		<Scripts>
-			<OnShow method="OnShow"/>
-            <OnLoad>
-                self.BG:Hide()
-                self.Arrow:ClearAllPoints()
-                self.Arrow:SetPoint("RIGHT", 36, 0)
-                self.Arrow.Arrow:ClearAllPoints()
-                self.Arrow.Arrow:SetPoint("RIGHT", 0, -1)
-                self.Arrow.Arrow:SetRotation(1.57)
-                self.Arrow.Glow:ClearAllPoints()
-                self.Arrow.Glow:SetPoint("RIGHT", 10, 0)
-                self.Arrow.Glow:SetRotation(1.57)
-            </OnLoad>
-		</Scripts>
-	</Frame>
-
     <Frame name="VendorMateHistoryListviewItemTemplate" mixin="VendorMateHistoryListviewItemTemplateMixin" enableMouse="true" virtual="true">
         <Layers>
             <Layer level="OVERLAY">
@@ -408,7 +336,7 @@
                 </Anchors>
             </Button>
 
-            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMin" parentKey="minEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
+            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMin" parentKey="minEffectiveIlvl" minValue="1" maxValue="800" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
                 <Size x="100" y="16"/>
                 <Anchors>
                     <Anchor point="TOP" x="0" y="-340"/>
@@ -440,7 +368,7 @@
                     </Layer>
                 </Layers>
             </Slider>
-            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMax" parentKey="maxEffectiveIlvl" minValue="1" maxValue="500" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
+            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMax" parentKey="maxEffectiveIlvl" minValue="1" maxValue="800" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
                 <Size x="100" y="16"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.minEffectiveIlvl" relativePoint="BOTTOM" x="0" y="-20"/>
@@ -473,28 +401,28 @@
                 </Layers>
             </Slider>
 
-            <Button parentKey="classDropdown" inherits="VendorMateDropDownTemplate">
+            <Button parentKey="classDropdown" inherits="TBDDropDownTemplate">
                 <Size x="140" y="36"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.itemClassHeader" relativePoint="BOTTOM" x="0" y="2"/>
                 </Anchors>
             </Button>
 
-            <Button parentKey="subClassDropdown" inherits="VendorMateDropDownTemplate">
+            <Button parentKey="subClassDropdown" inherits="TBDDropDownTemplate">
                 <Size x="140" y="36"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.itemSubClassHeader" relativePoint="BOTTOM" x="0" y="2"/>
                 </Anchors>
             </Button>
 
-            <Button parentKey="inventorySlotDropdown" inherits="VendorMateDropDownTemplate">
+            <Button parentKey="inventorySlotDropdown" inherits="TBDDropDownTemplate">
                 <Size x="140" y="36"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.inventorySlotHeader" relativePoint="BOTTOM" x="0" y="2"/>
                 </Anchors>
             </Button>
             
-            <Button parentKey="bindTypeDropdown" inherits="VendorMateDropDownTemplate">
+            <Button parentKey="bindTypeDropdown" inherits="TBDDropDownTemplate">
                 <Size x="140" y="36"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.bindTypeHeader" relativePoint="BOTTOM" x="0" y="2"/>
@@ -628,7 +556,7 @@
                 </Anchors>
                 <NormalTexture atlas="vignetteloot-locked"/>
             </Button>
-            <Frame parentKey="listview" inherits="VendorMateListviewTemplate">
+            <Frame parentKey="listview" inherits="TBDListviewTemplate">
                 <Anchors>
                     <Anchor point="TOPLEFT" x="2" y="-42"/>
                     <Anchor point="BOTTOMRIGHT" x="-2" y="22"/>

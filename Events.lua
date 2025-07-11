@@ -21,6 +21,7 @@ Mixin(vm, CallbackRegistryMixin)
 vm:GenerateCallbackEvents({
 
     "Database_OnInitialised",
+    "Database_OnTransactionDeleted",
 
     "Player_OnEnteringWorld",
     "PlayerBags_OnItemsChanged",
@@ -28,6 +29,9 @@ vm:GenerateCallbackEvents({
 
     "Merchant_OnShow",
     "Merchant_OnHide",
+
+    "Vendor_OnTransactionStart",
+    "Vendor_OnTransactionFinish",
 
     "Filter_OnItemSold",
     "Filter_OnChanged",

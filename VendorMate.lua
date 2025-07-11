@@ -18,6 +18,11 @@ VendorMateMixin = {
     bagLocationToItem = {},
     bagLinkToItem = {},
     playerGold = 0,
+    temporaryTransaction = {},
+    history = {
+        selectedProfile = {},
+        transactionType = ""
+    },
 }
 
 function VendorMateMixin:OnLoad()
@@ -29,6 +34,7 @@ function VendorMateMixin:OnLoad()
     end
 
     vm:RegisterCallback("Database_OnInitialised", self.Database_OnInitialised, self)
+    vm:RegisterCallback("Database_OnTransactionDeleted", self.Database_OnTransactionDeleted, self)
     vm:RegisterCallback("Player_OnEnteringWorld", self.Player_OnEnteringWorld, self)
     vm:RegisterCallback("Player_OnMoneyChanged", self.Player_OnMoneyChanged, self)
     vm:RegisterCallback("Merchant_OnShow", self.Merchant_OnShow, self)
@@ -43,6 +49,8 @@ function VendorMateMixin:OnLoad()
     vm:RegisterCallback("Filter_OnVendorStart", self.Filter_OnVendorStart, self)
     vm:RegisterCallback("Filter_OnVendorFinished", self.Filter_OnVendorFinished, self)
     vm:RegisterCallback("Filter_OnItemsAddedToMail", self.Filter_OnItemsAddedToMail, self)
+    vm:RegisterCallback("Vendor_OnTransactionStart", self.Vendor_OnTransactionStart, self)
+    vm:RegisterCallback("Vendor_OnTransactionFinish", self.Vendor_OnTransactionFinish, self)
 
 
     self:RegisterForDrag("LeftButton")
@@ -75,6 +83,10 @@ function VendorMateMixin:OnLoad()
         for k, tip in ipairs(self.content.vendor.helptips) do
             tip:SetShown(not tip:IsVisible())
         end
+
+        -- AuraUtil.ForEachAura("player", "HELPFUL", nil, function(...)
+        --     DevTools_Dump({...})
+        -- end)
 
     end)
 
@@ -113,8 +125,51 @@ end
 
 function VendorMateMixin:Database_OnInitialised()
     Database:AddConfig("autoVendorJunk", false)
+    self:SetupHistoryView()
 end
 
+function VendorMateMixin:Database_OnTransactionDeleted()
+    self:UpdateHistoryView()
+end
+
+function VendorMateMixin:Vendor_OnTransactionStart()
+
+    local vendor = MerchantFrameTitleText:GetText() or "-"
+
+    self.temporaryTransaction = {
+        vendor = vendor,
+        items = {},
+        profile = self.selectedProfile.pkey,
+    }
+end
+
+function VendorMateMixin:Vendor_OnTransactionFinish()
+    
+    local transaction = {}
+    transaction.profile = self.temporaryTransaction.profile;
+    transaction.vendor = self.temporaryTransaction.vendor;
+
+    local transactionValue = 0;
+    local transactionItems = {}
+
+    for link, info in pairs(self.temporaryTransaction.items) do
+        transactionValue = transactionValue + info.vendorPrice;
+        table.insert(transactionItems, {
+            link = info.link,
+            count = info.count,
+            vendorPrice = info.vendorPrice
+        })
+    end
+
+    transaction.items = transactionItems;
+    transaction.value = transactionValue;
+    transaction.timestamp = time()
+    transaction.action = "vendor"
+
+    Database:AddTransaction(transaction)
+
+    self.temporaryTransaction = {}
+end
 
 function VendorMateMixin:Player_OnMoneyChanged(gold)
     
@@ -128,12 +183,31 @@ function VendorMateMixin:OnContainerItemUsed(bag, slot)
         return;
     end
 
+
     if MerchantFrame:IsVisible() then
 
-        local vendor = MerchantFrameTitleText:GetText() or "-"
+        --print(item.itemID)
 
-        Database:NewTransaction("sold", item.vendorPrice, item.count, self.selectedProfile.pkey, vendor, item.link)
+        --print(string.format("%s %s %s %s", item.itemID, item.link, item.count, GetCoinTextureString(item.vendorPrice * item.count)))
 
+        if self.temporaryTransaction.items then
+            if not self.temporaryTransaction.items[item.itemID] then
+                self.temporaryTransaction.items[item.itemID] = {
+                    count = item.count,
+                    vendorPrice = item.vendorPrice * item.count,
+                    link = item.link,
+                }
+                --print("new id")
+            else
+                self.temporaryTransaction.items[item.itemID].count = self.temporaryTransaction.items[item.itemID].count + 1
+                --print(GetCoinTextureString(self.temporaryTransaction.items[item.itemID].vendorPrice))
+                self.temporaryTransaction.items[item.itemID].vendorPrice = self.temporaryTransaction.items[item.itemID].vendorPrice + (item.count * item.vendorPrice)
+                --print(GetCoinTextureString(self.temporaryTransaction.items[item.itemID].vendorPrice), GetCoinTextureString(item.count * item.vendorPrice))
+                --print("updated id")
+            end 
+        end
+
+        --local vendor = MerchantFrameTitleText:GetText() or "-"
 
         vm:TriggerEvent("Filter_OnItemSold", bag, slot)
 
@@ -216,7 +290,7 @@ function VendorMateMixin:SetupVendorView()
                 subClassID = "any",
                 ignorePriority = false,
                 minEffectiveIlvl = 1,
-                maxEffectiveIlvl = 500,
+                maxEffectiveIlvl = 800,
                 inventoryType = "any",
                 tier = "any",
                 bindingType = "any",
@@ -291,18 +365,6 @@ function VendorMateMixin:UpdateVendorViewLayout()
 
     local autoVendorJunk = Database:GetConfig("autoVendorJunk")
 
-end
-
-
-function VendorMateMixin:UpdateHistoryView()
-    
-    local view = self.content.history;
-
-    view.listview.DataProvider = CreateDataProvider()
-    view.listview.scrollView:SetDataProvider(view.listview.DataProvider)
-
-    local history = Database:GetAllTransactions()
-    view.listview.DataProvider:InsertTable(history)
 end
 
 
@@ -390,7 +452,7 @@ function VendorMateMixin:GenerateProfile(profileName)
                             subClassID = "any",
                             ignorePriority = false,
                             minEffectiveIlvl = 1,
-                            maxEffectiveIlvl = 500,
+                            maxEffectiveIlvl = 800,
                             inventoryType = "any",
                             tier = "any",
                             bindingType = "any",
@@ -477,6 +539,9 @@ function VendorMateMixin:Profile_OnChanged(newProfile)
     end
 
     Database:SetConfig("currentProfile", newProfile.pkey)
+
+
+
 end
 
 
@@ -857,6 +922,7 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
                         info.name = item:GetItemName()
                         info.link = item:GetItemLink()
                         info.quality = item:GetItemQuality()
+                        info.itemID = item:GetItemID()
 
                         info.vendorPrice = (select(11, GetItemInfo(info.link)))
 
@@ -888,4 +954,88 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
         end
     end
 
+end
+
+
+
+
+
+function VendorMateMixin:SetupHistoryView()
+    
+    local view = self.content.history;
+
+    local profiles = Database:GetProfiles()
+    local t = {}
+    for k, profile in ipairs(profiles) do
+        table.insert(t, {
+            text = profile.pkey,
+            func = function()
+                self:SetHistoryProfile(profile)
+            end
+        })
+    end
+    view.profileSelectDropdown:SetMenu(t)
+
+    local transactionTypes = {
+        {
+            text = "Vendor",
+            func = function()
+                self:SetHistoryTransaction("vendor")
+            end,
+        },
+    }
+    view.transactionSelectDropdown:SetMenu(transactionTypes)
+
+
+
+
+end
+
+
+function VendorMateMixin:UpdateHistoryView()
+    
+    if self.history.transactionType and self.history.selectedProfile then
+        local transactions = Database:GetTransactions(0, time() + time(), self.history.selectedProfile.pkey, self.history.transactionType)
+
+        local t = {}
+        for k, v in ipairs(transactions) do
+            table.insert(t, {
+                label = string.format("%s [%s]", date("%y-%m-%d - %H:%M:%S", v.timestamp), v.vendor),
+                labelRight = GetCoinTextureString(v.value),
+                backgroundRGB = {r = 196/255, g= 148/255, b = 28/255},
+                backgroundAlpha = 0.4,
+                onMouseDown = function(f, but)
+                    if but == "RightButton" then
+                        Database:DeleteTransaction(v)
+                    end
+                end,
+            })
+            table.sort(v.items, function(a, b)
+                return (a.vendorPrice * a.count) > (b.vendorPrice * b.count)
+            end)
+            for _, item in ipairs(v.items) do
+                table.insert(t, {
+                    label = string.format("  [%d] %s", item.count, item.link),
+                    labelRight = GetCoinTextureString(item.vendorPrice),
+                    onMouseEnter = function(f)
+                        GameTooltip:SetOwner(f, "ANCHOR_RIGHT")
+                        GameTooltip:SetHyperlink(item.link)
+                        GameTooltip:Show()
+                    end
+                })
+            end
+        end
+
+        self.content.history.listview.scrollView:SetDataProvider(CreateDataProvider(t))
+    end
+end
+
+function VendorMateMixin:SetHistoryProfile(profile)
+    self.history.selectedProfile = profile;
+    self:UpdateHistoryView()
+end
+
+function VendorMateMixin:SetHistoryTransaction(transaction)
+    self.history.transactionType = transaction;
+    self:UpdateHistoryView()
 end

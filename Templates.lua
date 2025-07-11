@@ -25,13 +25,15 @@ end
 
 function VendorMateHistoryListviewItemTemplateMixin:SetDataBinding(binding, height)
 
-    self.icon:SetSize(height - 2, height - 2)
+    self.text:SetText(binding.link)
 
-    self.icon:SetTexture(select(5, GetItemInfoInstant(binding.link)))
+    -- self.icon:SetSize(height - 2, height - 2)
 
-    local d = date("%y-%m-%d - %H:%M:%S", binding.datetime)
+    -- self.icon:SetTexture(select(5, GetItemInfoInstant(binding.link)))
 
-    self.text:SetText(string.format("%s %s %s - x%s %s", d, binding.link, binding.vendor, binding.count, GetCoinTextureString(binding.count * binding.amount)))
+    -- local d = date("%y-%m-%d - %H:%M:%S", binding.datetime)
+
+    -- self.text:SetText(string.format("%s %s %s - x%s %s", d, binding.link, binding.vendor, binding.count, GetCoinTextureString(binding.count * binding.amount)))
 end
 
 function VendorMateHistoryListviewItemTemplateMixin:ResetDataBinding()
