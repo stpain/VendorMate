@@ -1,10 +1,11 @@
 ## Name: VendorMate
-## Version: 1.1
+## Version: 1.2
 ## Interface: 110107
 ## Notes: Vendor friend for your WoW adventures 
 ## SavedVariables: VendorMateAccount
 
 Locales.lua
+Locales_ruRU.lua
 
 Database.lua
 

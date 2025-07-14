@@ -1,5 +1,9 @@
 local addonName, vm = ...;
 
+if GetLocale() ~= "ruRU" then
+    return
+end
+
 local L = {}
 -- Translator ZamestoTV
 L.ADDON_LOADED = "[%s] загружен."

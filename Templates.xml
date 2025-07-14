@@ -336,7 +336,7 @@
                 </Anchors>
             </Button>
 
-            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMin" parentKey="minEffectiveIlvl" minValue="1" maxValue="800" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
+            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMin" parentKey="minEffectiveIlvl" minValue="1" maxValue="800" defaultValue="500" valueStep="1" inherits="OptionsSliderTemplate">
                 <Size x="100" y="16"/>
                 <Anchors>
                     <Anchor point="TOP" x="0" y="-340"/>
@@ -349,7 +349,7 @@
                                 <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="0" y="0"/>
                             </Anchors>
                         </FontString>
-                        <FontString parentKey="high" inherits="GameFontNormalSmall" text="500">
+                        <FontString parentKey="high" inherits="GameFontNormalSmall" text="800">
                             <Color r="1" g="1" b="1"/>
                             <Anchors>
                                 <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
@@ -360,7 +360,7 @@
                                 <Anchor point="RIGHT" relativePoint="LEFT" x="-5" y="0"/>
                             </Anchors>
                         </FontString>
-                        <FontString parentKey="value" inherits="GameFontNormal" text="250">
+                        <FontString parentKey="value" inherits="GameFontNormal" text="500">
                             <Anchors>
                                 <Anchor point="LEFT" relativePoint="RIGHT" x="5" y="0"/>
                             </Anchors>
@@ -368,7 +368,7 @@
                     </Layer>
                 </Layers>
             </Slider>
-            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMax" parentKey="maxEffectiveIlvl" minValue="1" maxValue="800" defaultValue="250" valueStep="1" inherits="OptionsSliderTemplate">
+            <Slider name="VendorMateFilterDropdownMenuIlvlSliderMax" parentKey="maxEffectiveIlvl" minValue="1" maxValue="800" defaultValue="500" valueStep="1" inherits="OptionsSliderTemplate">
                 <Size x="100" y="16"/>
                 <Anchors>
                     <Anchor point="TOP" relativeKey="$parent.minEffectiveIlvl" relativePoint="BOTTOM" x="0" y="-20"/>
@@ -381,7 +381,7 @@
                                 <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="0" y="0"/>
                             </Anchors>
                         </FontString>
-                        <FontString parentKey="high" inherits="GameFontNormalSmall" text="500">
+                        <FontString parentKey="high" inherits="GameFontNormalSmall" text="800">
                             <Color r="1" g="1" b="1"/>
                             <Anchors>
                                 <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
@@ -392,7 +392,7 @@
                                 <Anchor point="RIGHT" relativePoint="LEFT" x="-5" y="0"/>
                             </Anchors>
                         </FontString>
-                        <FontString parentKey="value" inherits="GameFontNormal" text="250">
+                        <FontString parentKey="value" inherits="GameFontNormal" text="500">
                             <Anchors>
                                 <Anchor point="LEFT" relativePoint="RIGHT" x="5" y="0"/>
                             </Anchors>

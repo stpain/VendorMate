@@ -340,7 +340,7 @@ function VendorMateMixin:SetupVendorView()
             end
         end
 
-        StaticPopup_Show("VendorMateDialogVendorItemsConfirm", ALL, string.format("%s %s - %s %s - %s %s\n\n%s", numFilters, FILTERS, slots, "Slots", numItems, ITEMS, GetCoinTextureString(gold)) or "-", vendorItems)
+        StaticPopup_Show("VendorMateDialogVendorItemsConfirm", ALL, string.format("%s %s - %s %s - %s %s\n\n%s", numFilters, FILTERS, slots, "Slots", numItems, ITEMS, C_CurrencyInfo.GetCoinTextureString(gold)) or "-", vendorItems)
 
     end)
 
@@ -801,7 +801,7 @@ function VendorMateMixin:IterAllFilters()
 
     end
 
-    self.content.vendor.allFiltersInfo:SetText(string.format("%s %s - %s %s - %s %s - %s", #filters, "Filters", stacksAllFilters, "Stacks", itemsAllFilters, "items", GetCoinTextureString(goldAllFilters)))
+    self.content.vendor.allFiltersInfo:SetText(string.format("%s %s - %s %s - %s %s - %s", #filters, "Filters", stacksAllFilters, "Stacks", itemsAllFilters, "items", C_CurrencyInfo.GetCoinTextureString(goldAllFilters)))
 
 end
 
@@ -924,14 +924,14 @@ function VendorMateMixin:PlayerBags_OnItemsChanged()
                         info.quality = item:GetItemQuality()
                         info.itemID = item:GetItemID()
 
-                        info.vendorPrice = (select(11, GetItemInfo(info.link)))
+                        info.vendorPrice = (select(11, C_Item.GetItemInfo(info.link)))
 
-                        local effectiveILvl, isPreview, baseILvl = GetDetailedItemLevelInfo(info.link)
+                        local effectiveILvl, isPreview, baseILvl = C_Item.GetDetailedItemLevelInfo(info.link)
                         info.effectiveIlvl = effectiveILvl
 
-                        local _, _, _, _, icon, classID, subClassID = GetItemInfoInstant(info.link)
+                        local _, _, _, _, icon, classID, subClassID = C_Item.GetItemInfoInstant(info.link)
 
-                        info.bindingType = select(14, GetItemInfo(info.link))
+                        info.bindingType = select(14, C_Item.GetItemInfo(info.link))
 
                         info.icon = icon
                         info.classID = classID
@@ -1001,7 +1001,7 @@ function VendorMateMixin:UpdateHistoryView()
         for k, v in ipairs(transactions) do
             table.insert(t, {
                 label = string.format("%s [%s]", date("%y-%m-%d - %H:%M:%S", v.timestamp), v.vendor),
-                labelRight = GetCoinTextureString(v.value),
+                labelRight = C_CurrencyInfo.GetCoinTextureString(v.value),
                 backgroundRGB = {r = 196/255, g= 148/255, b = 28/255},
                 backgroundAlpha = 0.4,
                 onMouseDown = function(f, but)
@@ -1016,7 +1016,7 @@ function VendorMateMixin:UpdateHistoryView()
             for _, item in ipairs(v.items) do
                 table.insert(t, {
                     label = string.format("  [%d] %s", item.count, item.link),
-                    labelRight = GetCoinTextureString(item.vendorPrice),
+                    labelRight = C_CurrencyInfo.GetCoinTextureString(item.vendorPrice),
                     onMouseEnter = function(f)
                         GameTooltip:SetOwner(f, "ANCHOR_RIGHT")
                         GameTooltip:SetHyperlink(item.link)

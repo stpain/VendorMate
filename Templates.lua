@@ -210,7 +210,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
             end, 
         },
         {
-            text = string.format("%s + %s", GetItemClassInfo(2), GetItemClassInfo(4)),
+            text = string.format("%s + %s", C_Item.GetItemClassInfo(2), C_Item.GetItemClassInfo(4)),
             func = function()
                 if self.filter then
                     self.filter.rules.classID = "invEquip";
@@ -225,7 +225,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
 
     for classID = 0, 19 do
         table.insert(classIdMenuList, {
-            text = GetItemClassInfo(classID),
+            text = C_Item.GetItemClassInfo(classID),
             func = function()
                 if self.filter then
                     self.filter.rules.classID = classID;
@@ -251,7 +251,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                             anyAdded = true
                         end
                         table.insert(subClassIdMenuList, {
-                            text = GetItemSubClassInfo(classID, subClassID),
+                            text = C_Item.GetItemSubClassInfo(classID, subClassID),
                             func = function()
                                 if self.filter then
                                     self.filter.rules.classID = classID;
@@ -515,7 +515,7 @@ function VendorMateVendorGridviewItemMixin:GetFilterPkey()
 end
 
 function VendorMateVendorGridviewItemMixin:SetInfoText(info)
-    self.vendorValue:SetText(GetCoinTextureString(info.gold))
+    self.vendorValue:SetText(C_CurrencyInfo.GetCoinTextureString(info.gold))
     self.itemCount:SetText(string.format("%s %s %s %s", info.numSlots, "Slots", info.numItems, ITEMS))
 end
 
