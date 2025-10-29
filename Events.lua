@@ -22,6 +22,8 @@ vm:GenerateCallbackEvents({
 
     "Database_OnInitialised",
     "Database_OnTransactionDeleted",
+    "Database_OnMerchantOrderItemAdded",
+    "Database_OnMerchantOrderItemDeleted",
 
     "Player_OnEnteringWorld",
     "PlayerBags_OnItemsChanged",
@@ -104,8 +106,8 @@ f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:RegisterEvent("PLAYER_MONEY")
 f:RegisterEvent('BAG_UPDATE_DELAYED')
-f:RegisterEvent('MERCHANT_SHOW')
-f:RegisterEvent('MERCHANT_CLOSED')
+-- f:RegisterEvent('MERCHANT_SHOW')
+-- f:RegisterEvent('MERCHANT_CLOSED')
 f:RegisterEvent('PLAYER_INTERACTION_MANAGER_FRAME_SHOW')
 f:RegisterEvent('PLAYER_INTERACTION_MANAGER_FRAME_HIDE')
 

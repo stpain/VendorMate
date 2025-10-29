@@ -8,7 +8,7 @@
             <Anchor point="CENTER" x="0" y="0"/>
         </Anchors>
 
-        <Layers>
+        <!-- <Layers>
             <Layer level="BACKGROUND"> 
                 <Texture parentKey="background" atlas="auctionhouse-background-index">
                     <Anchors>
@@ -78,39 +78,34 @@
             <Layer level="OVERLAY">
 
             </Layer>
-        </Layers>
+        </Layers> -->
 
         <Frames>
 
             <Button parentKey="close" inherits="UIPanelCloseButton">
-                <Size x="20" y="20"/>
+                <Size x="24" y="24"/>
                 <Anchors>
-                    <Anchor point="TOPRIGHT" x="-8" y="-4"/>
+                    <Anchor point="TOPRIGHT" x="-8" y="-8"/>
                 </Anchors>
             </Button>
             <Button parentKey="help">
                 <Size x="20" y="20"/>
                 <Anchors>
-                    <Anchor point="TOPLEFT" x="6" y="-4"/>
+                    <Anchor point="TOPLEFT" x="6" y="-6"/>
                 </Anchors>
                 <NormalTexture atlas="glueannouncementpopup-icon-info"/>
             </Button>
 
-            <Button name="$parentTab1" parentKey="tab1" parentArray="tabs" inherits="PanelTabButtonTemplate" id="1">
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="12" y="5"/>
-                </Anchors>
-            </Button>
-            <Button name="$parentTab2" parentKey="tab2" parentArray="tabs" inherits="PanelTabButtonTemplate" id="2">
-                <Anchors>
-                    <Anchor point="LEFT" relativeKey="$parent.tab1" relativePoint="RIGHT" x="0" y="0"/>
-                </Anchors>
-            </Button>
-            <Button name="$parentTab3" parentKey="tab3" parentArray="tabs" inherits="PanelTabButtonTemplate" id="3">
-                <Anchors>
-                    <Anchor point="LEFT" relativeKey="$parent.tab2" relativePoint="RIGHT" x="0" y="0"/>
-                </Anchors>
-            </Button>
+			<Frame parentKey="TabSystem" inherits="TabSystemTemplate">
+				<KeyValues>
+					<KeyValue key="minTabWidth" value="90" type="number"/>
+					<KeyValue key="maxTabWidth" value="120" type="number"/>
+					<KeyValue key="tabTemplate" value="TabSystemButtonTemplate" type="string"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="BOTTOMLEFT" x="22" y="0"/>
+				</Anchors>
+			</Frame>
 
             <Frame parentKey="content">
                 <Anchors>
@@ -152,7 +147,7 @@
                                 </Anchors>
                                 <NormalTexture atlas="common-icon-redx"/>
                                 <PushedTexture atlas="common-icon-redx"/>
-                                <HighlightTexture atlas="ClickCast-Highlight-Binding"/>
+                                <!-- <HighlightTexture atlas="ClickCast-Highlight-Binding"/> -->
                             </Button>
 
                             <EditBox parentkey="newFilterName" inherits="InputBoxTemplate" autoFocus="false">
@@ -179,7 +174,7 @@
                                 </Anchors>
                                 <NormalTexture atlas="communities-icon-addgroupplus"/>
                                 <PushedTexture atlas="communities-icon-addgroupplus"/>
-                                <HighlightTexture atlas="ClickCast-Highlight-Binding"/>
+                                <!-- <HighlightTexture atlas="ClickCast-Highlight-Binding"/> -->
                             </Button>
 
                             <Button parentKey="deleteAllFilters" inherits="UIPanelButtonTemplate">
@@ -220,6 +215,64 @@
                                 </Anchors>
                             </Frame>
 
+                        </Frames>
+                    </Frame>
+
+                    <Frame parentKey="merchant" parentArray="views" setAllPoints="true" hidden="true">
+                        <Frames>
+                            <Frame parentKey="dropFrame">
+                                <Size y="95"/>
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" x="20" y="-50"/>
+                                    <Anchor point="TOPRIGHT" x="-20" y="-50"/>
+                                </Anchors>
+                                <Layers>
+                                    <Layer level="OVERLAY">
+                                        <FontString inherits="GameFontNormal" text="Drag items below to add to your merchant orders.">
+                                            <Anchors>
+                                                <Anchor point="BOTTOM" relativePoint="TOP" x="0" y="2"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                    <Layer level="ARTWORK">
+                                        <Texture atlas="auctionhouse-background-buy-noncommodities-header" setAllPoints="true">
+
+                                        </Texture>
+                                    </Layer>
+                                    <Layer level="ARTWORK" textureSubLevel="1">
+                                        <Texture atlas="glues-characterSelect-icon-FX-plus">
+                                            <Size x="125" y="125"/>
+                                            <Anchors>
+                                                <Anchor point="CENTER" x="0" y="0"/>
+                                            </Anchors>
+                                        </Texture>
+                                    </Layer>
+                                </Layers>
+                            </Frame>
+                            <Frame parentKey="listview" inherits="TBDListviewTemplate">
+                                <Layers>
+                                    <Layer level="OVERLAY">
+                                        <FontString inherits="GameFontNormal" text="Item">
+                                            <Anchors>
+                                                <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="10" y="2"/>
+                                            </Anchors>
+                                        </FontString>
+                                        <FontString inherits="GameFontNormal" text="Min Stock">
+                                            <Anchors>
+                                                <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="-60" y="2"/>
+                                            </Anchors>
+                                        </FontString>
+                                    </Layer>
+                                </Layers>
+                                <Anchors>
+                                    <Anchor point="TOPLEFT" x="2" y="-180"/>
+                                    <Anchor point="BOTTOMRIGHT" x="-2" y="22"/>
+                                </Anchors>
+                                <KeyValues>
+                                    <KeyValue key="itemTemplate" value="VendorMateMerchantOrderListviewItemTemplate" type="string"/>
+                                    <KeyValue key="elementHeight" value="28" type="number"/>
+                                </KeyValues>
+                            </Frame>
                         </Frames>
                     </Frame>
 
@@ -323,13 +376,14 @@
                                         </Anchors>
                                         <NormalTexture atlas="communities-icon-addgroupplus"/>
                                         <PushedTexture atlas="communities-icon-addgroupplus"/>
-                                        <HighlightTexture atlas="ClickCast-Highlight-Binding"/>
+                                        <!-- <HighlightTexture atlas="ClickCast-Highlight-Binding"/> -->
                                     </Button>
                                 </Frames>
                             </EditBox>
 
                         </Frames>
                     </Frame>
+
 
                 </Frames>
             </Frame>

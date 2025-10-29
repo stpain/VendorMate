@@ -1,5 +1,64 @@
 <Ui>
 
+    <Frame name="VendorMateMerchantOrderListviewItemTemplate" mixin="VendorMateMerchantOrderListviewItemMixin" virtual="true" enableMouse="true">
+        <Frames>
+            <Button parentKey="deleteOrder">
+                <Size x="26" y="26"/>
+                <NormalTexture atlas="128-RedButton-Delete"/>
+                <PushedTexture atlas="128-RedButton-Delete-Pressed"/>
+                <HighlightTexture atlas="128-RedButton-Delete-Highlight"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-6" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="increaseOrder">
+                <Size x="26" y="26"/>
+                <NormalTexture atlas="128-RedButton-Plus"/>
+                <PushedTexture atlas="128-RedButton-Plus-Pressed"/>
+                <HighlightTexture atlas="128-RedButton-Plus-Highlight"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-50" y="0"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="decreaseOrder">
+                <Size x="26" y="26"/>
+                <NormalTexture atlas="128-RedButton-Minus"/>
+                <PushedTexture atlas="128-RedButton-Minus-Pressed"/>
+                <HighlightTexture atlas="128-RedButton-Minus-Highlight"/>
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.increaseOrder" relativePoint="LEFT" x="-40" y="0"/>
+                </Anchors>
+            </Button>
+        </Frames>
+        <Layers>
+            <Layer level="OVERLAY">
+                <Texture parentKey="icon">
+                    <Size x="26" y="26"/>
+                    <Anchors>
+                        <Anchor point="LEFT" x="1" y="0"/>
+                    </Anchors>
+                </Texture>
+                <FontString parentKey="text" inherits="GameFontNormal" justifyH="LEFT">
+                    <Anchors>
+                        <Anchor point="LEFT" relativeKey="$parent.icon" relativePoint="RIGHT" x="2" y="0"/>
+                        <Anchor point="RIGHT" x="-1" y="0"/>
+                    </Anchors>
+                </FontString>
+                <FontString parentKey="stockLevel" inherits="GameFontNormal" justifyH="CENTER">
+                    <Anchors>
+                        <Anchor point="LEFT" relativeKey="$parent.decreaseOrder" relativePoint="RIGHT" x="2" y="0"/>
+                        <Anchor point="RIGHT" relativeKey="$parent.increaseOrder" relativePoint="LEFT" x="-2" y="0"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+            <!-- <Layer level="HIGHLIGHT">
+                <Texture>
+                    <Color r="0.5" g="0.5" b="0.5" a="0.015"/>
+                </Texture>
+            </Layer> -->
+        </Layers>
+    </Frame>
+
     <Frame name="VendorMateHistoryListviewItemTemplate" mixin="VendorMateHistoryListviewItemTemplateMixin" enableMouse="true" virtual="true">
         <Layers>
             <Layer level="OVERLAY">
@@ -82,7 +141,7 @@
                 </Texture>
             </Layer>
             <Layer level="HIGHLIGHT">
-                <Texture atlas="heartofazeroth-slot-yellowglow">
+                <Texture atlas="ChallengeMode-KeystoneSlotFrameGlow">
                     <Anchors>
                         <Anchor point="TOPLEFT" x="-1" y="1"/>
                         <Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
@@ -116,7 +175,7 @@
         </Animations>
         <Layers>
             <Layer level="BACKGROUND">
-                <Texture atlas="UI-Frame-Dragonflight-BackgroundTile" vertTile="true"> <!-- pvpqueue-sidebar-background transmog-set-model-cutoff-fade -->
+                <Texture atlas="ClassHall_StoneFrame-BackgroundTile" vertTile="true"> <!-- pvpqueue-sidebar-background transmog-set-model-cutoff-fade -->
                     <Anchors>
                         <Anchor point="TOPLEFT" x="6" y="-6"/>
                         <Anchor point="BOTTOMRIGHT" x="-6" y="6"/>
@@ -533,7 +592,7 @@
                 <Anchors>
                     <Anchor point="TOPLEFT" x="2" y="-2"/>
                 </Anchors>
-                <NormalTexture atlas="mechagon-projects"/>
+                <NormalTexture atlas="OptionsIcon-Brown"/>
             </Button>
             <Button parentKey="deleteFilter" registerForClicks="anyDown">
                 <Size x="20" y="20"/>
@@ -554,7 +613,8 @@
                 <Anchors>
                     <Anchor point="RIGHT" relativeKey="$parent.vendorItems" relativePoint="LEFT" x="-1" y="0"/>
                 </Anchors>
-                <NormalTexture atlas="vignetteloot-locked"/>
+                <NormalTexture atlas="VignetteLoot"/>
+                <!-- <NormalTexture atlas="vignetteloot-locked"/> -->
             </Button>
             <Frame parentKey="listview" inherits="TBDListviewTemplate">
                 <Anchors>

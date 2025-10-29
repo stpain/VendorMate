@@ -4,6 +4,8 @@ local addonName, vm = ...;
 
 local L = {}
 
+L.ANY = "Any"
+
 L.ADDON_LOADED = "[%s] loaded."
 
 L.HELP_ABOUT = "VendorMate\n\nBags full of junk? Old world epics hiding in plain sight?\n\nNo problems. Go to the Vendor tab and create some filters. Type a filter name into the Add Filter box and tap enter (or click the +). Then you can configure each filter to certain items.\n\nFilters take priority from top left moving accross and then down. This means if an item matches filter 2 and 3, it'll be sorted into filter 2 as it comes first.\n\nYou can vendor filters individually or all together, a dialog will popup with some info and a confirm button. You can also choose to auto click confirm vendor dialogs."
@@ -12,6 +14,7 @@ L.AUTO_VENDOR_JUNK = "Auto vendor junk items"
 L.TABS_VENDOR = "Vendor"
 L.TABS_HISTORY = "History"
 L.TABS_OPTIONS = "Options"
+L.TABS_AUTO_MERCHANT = "Merchant"
 
 L.FILTER_BUTTON_SETTINGS_TT = "Settings"
 L.FILTER_BUTTON_VENDOR_TT = "Vendor items"

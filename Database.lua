@@ -22,6 +22,30 @@ function Database:Init()
 
     vm:TriggerEvent("Database_OnInitialised")
 
+    if ViragDevTool_AddData then
+        ViragDevTool_AddData(self.db, "VendorMate")
+    end
+
+end
+
+function Database:AddMerchantOrder(_profile, order)
+    if self.db and self.db.profiles then
+        for k, profile in ipairs(self.db.profiles) do
+            if profile.pkey == _profile.pkey then
+                if profile.merchant == nil then
+                    profile.merchant = {}
+                end
+                table.insert(profile.merchant, order)
+                vm:TriggerEvent("Database_OnMerchantOrderItemAdded", profile.merchant)
+            end
+        end
+    end
+end
+
+function Database:GetMerchantOrders(profile)
+    if self.db.merchant and self.db.merchant[profile] then
+        return self.db.merchant[profile];
+    end
 end
 
 function Database:AddConfig(key, val)
@@ -46,6 +70,7 @@ function Database:ResetAddon()
             currentProfile = false,
         },
         profiles = {},
+        merchant = {},
     }
 
     self.db = VendorMateAccount;

@@ -10,6 +10,20 @@ local NUM_PLAYER_BAGS = 4;
 local L = vm.locales;
 
 
+local MainNineSliceLayout =
+{
+    TopLeftCorner =	{ atlas = "UI-Frame-DiamondMetal-CornerTopLeft", x = -5, y = 5 },
+    TopRightCorner =	{ atlas = "UI-Frame-DiamondMetal-CornerTopRight", x = 5, y = 5 },
+    BottomLeftCorner =	{ atlas = "UI-Frame-DiamondMetal-CornerBottomLeft", x = -5, y = -5 },
+    BottomRightCorner =	{ atlas = "UI-Frame-DiamondMetal-CornerBottomRight", x = 5, y = -5 },
+    TopEdge = { atlas = "_UI-Frame-DiamondMetal-EdgeTop", },
+    BottomEdge = { atlas = "_UI-Frame-DiamondMetal-EdgeBottom", },
+    LeftEdge = { atlas = "!UI-Frame-DiamondMetal-EdgeLeft", },
+    RightEdge = { atlas = "!UI-Frame-DiamondMetal-EdgeRight", },
+    Center = { layer = "BACKGROUND", atlas = "Tooltip-Glues-NineSlice-Center", x = -20, y = 20, x1 = 20, y1 = -20 },
+}
+
+
 VendorMateMixin = {
     playerBags = {},
     isRefreshEnabled = false,
@@ -25,6 +39,8 @@ VendorMateMixin = {
     },
 }
 
+
+
 function VendorMateMixin:OnLoad()
 
     SLASH_VENDORMATE1 = '/vendormate'
@@ -32,6 +48,8 @@ function VendorMateMixin:OnLoad()
     SlashCmdList['VENDORMATE'] = function(msg)
         self:Show()
     end
+
+    NineSliceUtil.ApplyLayout(self, MainNineSliceLayout)
 
     vm:RegisterCallback("Database_OnInitialised", self.Database_OnInitialised, self)
     vm:RegisterCallback("Database_OnTransactionDeleted", self.Database_OnTransactionDeleted, self)
@@ -51,6 +69,8 @@ function VendorMateMixin:OnLoad()
     vm:RegisterCallback("Filter_OnItemsAddedToMail", self.Filter_OnItemsAddedToMail, self)
     vm:RegisterCallback("Vendor_OnTransactionStart", self.Vendor_OnTransactionStart, self)
     vm:RegisterCallback("Vendor_OnTransactionFinish", self.Vendor_OnTransactionFinish, self)
+    vm:RegisterCallback("Database_OnMerchantOrderItemAdded", self.Database_OnMerchantOrderItemAdded, self)
+    vm:RegisterCallback("Database_OnMerchantOrderItemDeleted", self.Database_OnMerchantOrderItemDeleted, self)
 
 
     self:RegisterForDrag("LeftButton")
@@ -63,20 +83,17 @@ function VendorMateMixin:OnLoad()
         self.isRefreshEnabled = false;
     end)
 
-    self.numTabs = #self.tabs
-    self.tab1:SetText(L.TABS_VENDOR)
-    self.tab2:SetText(L.TABS_HISTORY)
-    self.tab3:SetText(L.TABS_OPTIONS)
-
-    PanelTemplates_SetNumTabs(self, self.numTabs);
-    PanelTemplates_SetTab(self, 1);
-
-    for i = 1, self.numTabs do
-        self["tab"..i]:SetScript("OnClick", function()
-            PanelTemplates_SetTab(self, i);
-            self:TabView(i)
-        end)
+    local function OnTabSelected(tabID)
+        self:TabView(tabID)
     end
+
+    self.TabSystem:SetTabSelectedCallback(OnTabSelected)
+    self.TabSystem:AddTab(L.TABS_VENDOR)
+    self.TabSystem:AddTab(L.TABS_AUTO_MERCHANT)
+    self.TabSystem:AddTab(L.TABS_HISTORY)
+    self.TabSystem:AddTab(L.TABS_OPTIONS)
+    self.TabSystem:SetTab(1)
+
 
     self.help:SetScript("OnMouseDown", function()
         
@@ -120,6 +137,8 @@ function VendorMateMixin:OnLoad()
     self.content.history:SetScript("OnShow", function()
         self:UpdateHistoryView()
     end)
+
+    self:SetupMerchantTab()
 
 end
 
@@ -477,8 +496,12 @@ function VendorMateMixin:Player_OnEnteringWorld(character)
 
     self:GenerateProfile()
 
-    local defaultProfile = Database:GetProfile(string.format("%s.%s.%s", character.name, character.realm, CHAT_DEFAULT))
+    local defaultProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
     vm:TriggerEvent("Profile_OnChanged", defaultProfile)
+
+    if defaultProfile.merchant then
+        self:Database_OnMerchantOrderItemAdded(defaultProfile.merchant)
+    end
 
     self:UpdateVendorViewLayout()
 
@@ -493,13 +516,14 @@ end
 
 function VendorMateMixin:Merchant_OnShow()
     self:Show()
-    PanelTemplates_SetTab(self, 1);
     self:UpdateVendorViewLayout()
 
     local autoVendorJunk = Database:GetConfig("autoVendorJunk")
     if autoVendorJunk == true then
         
     end
+
+    self:CheckMerchantOrders()
 end
 
 
@@ -539,8 +563,6 @@ function VendorMateMixin:Profile_OnChanged(newProfile)
     end
 
     Database:SetConfig("currentProfile", newProfile.pkey)
-
-
 
 end
 
@@ -1038,4 +1060,94 @@ end
 function VendorMateMixin:SetHistoryTransaction(transaction)
     self.history.transactionType = transaction;
     self:UpdateHistoryView()
+end
+
+function VendorMateMixin:SetupMerchantTab()
+
+    self.content.merchant.dropFrame:RegisterEvent("GLOBAL_MOUSE_UP")
+    self.content.merchant.dropFrame:SetScript("OnEvent", function(s, e, ...)
+        if e == "GLOBAL_MOUSE_UP" then
+
+            local order = {
+                minStock = 1,
+                autoPurchase = true,
+            }
+
+            local infoType, a, b = GetCursorInfo()
+            if infoType == "merchant" then
+                --a=merchantIndex
+                local itemID = GetMerchantItemID(a)
+                --local link = GetMerchantItemLink(a)
+
+                order.itemID = itemID;
+
+            elseif infoType == "item" then
+                --a=itemID b=itemLink
+
+                order.itemID = a
+            end
+
+            if order.itemID then
+                local thisCharacterProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
+                Database:AddMerchantOrder(thisCharacterProfile, order)
+            end
+
+            ClearCursor()
+        end
+    end)
+
+end
+
+function VendorMateMixin:Database_OnMerchantOrderItemAdded(profileMerchant)
+    self.content.merchant.listview.scrollView:SetDataProvider(CreateDataProvider(profileMerchant))
+end
+
+function VendorMateMixin:Database_OnMerchantOrderItemDeleted(order)
+    local thisCharacterProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
+    if thisCharacterProfile and thisCharacterProfile.merchant then
+        local indexToRemove;
+        for k, v in ipairs(thisCharacterProfile.merchant) do
+            if v.itemID == order.itemID then
+                indexToRemove = k;
+            end
+        end
+        if indexToRemove then
+            table.remove(thisCharacterProfile.merchant, indexToRemove)
+        end
+        self.content.merchant.listview.scrollView:SetDataProvider(CreateDataProvider(thisCharacterProfile.merchant))
+    end
+end
+
+
+function VendorMateMixin:CheckMerchantOrders()
+    --GetMerchantItemMaxStack(index)
+    --BuyMerchantItem(index[, quantity])
+
+    local merchantItems, itemID, maxStack = {}, nil, nil
+    for i = 1, GetMerchantNumItems() do
+        itemID = GetMerchantItemID(i)
+        maxStack = GetMerchantItemMaxStack(i)
+        merchantItems[itemID] = {
+            slotIndex = i,
+            maxStack = maxStack,
+        }
+    end
+
+    print("MERCHANT ORDERS........")
+
+    local thisCharacterProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
+    if thisCharacterProfile and thisCharacterProfile.merchant then
+        for _, order in ipairs(thisCharacterProfile.merchant) do
+
+            if merchantItems[order.itemID] then
+                local currentStock = C_Item.GetItemCount(order.itemID)
+                if currentStock < order.minStock then
+                    print("Need to purchase", order.minStock - currentStock)
+
+                else
+                    print("Have enough in stock")
+                end
+            end
+        end
+    end
 end

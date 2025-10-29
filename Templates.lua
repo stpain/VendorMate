@@ -198,7 +198,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
 
     local classIdMenuList = {
         {
-            text = CLUB_FINDER_ANY_FLAG,
+            text = L.ANY,
             func = function()
                 if self.filter then
                     self.filter.rules.classID = "any";
@@ -238,7 +238,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
                     if subClassID then
                         if anyAdded == false then
                             table.insert(subClassIdMenuList, {
-                                text = CLUB_FINDER_ANY_FLAG,
+                                text = L.ANY,
                                 -- this sets the subClass option to any btu needs to keep the classID of its parent
                                 func = function()
                                     if self.filter then
@@ -286,7 +286,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
     end)
     local inventoryTypeMenuList = {}
     table.insert(inventoryTypeMenuList, {
-        text = CLUB_FINDER_ANY_FLAG,
+        text = L.ANY,
         func = function()
             if self.filter then
                 self.filter.rules.inventoryType = "any";
@@ -310,7 +310,7 @@ function VendorMateFilterDropDownMenuMixin:OnLoad()
 
     local bindMenu = {
         {
-            text = CLUB_FINDER_ANY_FLAG,
+            text = L.ANY,
             func = function()
                 if self.filter then
                     self.filter.rules.isBound = "any";
@@ -483,9 +483,9 @@ function VendorMateVendorGridviewItemMixin:ToggleItemsLock(locked)
             end
         end
         if locked then
-            self.lockUnlockItems:SetNormalAtlas("vignetteloot-locked")
+            self.lockUnlockItems:SetNormalAtlas("Legionfall_Padlock")
         else
-            self.lockUnlockItems:SetNormalAtlas("vignetteloot")
+            self.lockUnlockItems:SetNormalAtlas("VignetteLoot")
         end
     end
 end
@@ -502,7 +502,7 @@ function VendorMateVendorGridviewItemMixin:UpdateItems(items)
     self.items = items;
 
     self.itemsLocked = true
-    self.lockUnlockItems:SetNormalAtlas("vignetteloot-locked")
+    self.lockUnlockItems:SetNormalAtlas("Legionfall_Padlock")
 
     self.listview.DataProvider = CreateDataProvider();
     self.listview.scrollView:SetDataProvider(self.listview.DataProvider);
@@ -522,4 +522,55 @@ end
 function VendorMateVendorGridviewItemMixin:ResetDataBinding()
     self.filter = nil;
     self.listview.DataProvider:Flush()
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VendorMateMerchantOrderListviewItemMixin = {}
+function VendorMateMerchantOrderListviewItemMixin:OnLoad()
+    
+end
+function VendorMateMerchantOrderListviewItemMixin:SetDataBinding(binding, height)   
+    if binding.itemID then
+        local item = Item:CreateFromItemID(binding.itemID)
+        if item and (not item:IsItemEmpty()) then
+            item:ContinueOnItemLoad(function()
+                self.icon:SetTexture(item:GetItemIcon())
+                self.text:SetText(item:GetItemLink())
+            end)
+        end
+
+        self.stockLevel:SetText(binding.minStock)
+
+        self.deleteOrder:SetScript("OnClick", function()
+            vm:TriggerEvent("Database_OnMerchantOrderItemDeleted", binding)
+        end)
+        self.increaseOrder:SetScript("OnClick", function()
+            binding.minStock = binding.minStock + 1
+            self.stockLevel:SetText(binding.minStock)
+        end)
+        self.decreaseOrder:SetScript("OnClick", function()
+            binding.minStock = binding.minStock - 1
+            if binding.minStock < 0 then
+                binding.minStock = 0
+            end
+            self.stockLevel:SetText(binding.minStock)
+        end)
+    end
+end
+function VendorMateMerchantOrderListviewItemMixin:ResetDataBinding()
+    
 end
