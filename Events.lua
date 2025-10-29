@@ -32,8 +32,8 @@ vm:GenerateCallbackEvents({
     "Merchant_OnShow",
     "Merchant_OnHide",
 
-    "Mail_OnShow",
-    "Mail_OnHide",
+    "Mailbox_OnShow",
+    "Mailbox_OnHide",
 
     "Vendor_OnTransactionStart",
     "Vendor_OnTransactionFinish",
