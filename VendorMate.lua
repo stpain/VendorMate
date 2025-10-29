@@ -1067,32 +1067,27 @@ function VendorMateMixin:SetupMerchantTab()
     self.content.merchant.dropFrame:RegisterEvent("GLOBAL_MOUSE_UP")
     self.content.merchant.dropFrame:SetScript("OnEvent", function(s, e, ...)
         if e == "GLOBAL_MOUSE_UP" then
-
-            local order = {
-                minStock = 1,
-                autoPurchase = true,
-            }
-
-            local infoType, a, b = GetCursorInfo()
-            if infoType == "merchant" then
-                --a=merchantIndex
-                local itemID = GetMerchantItemID(a)
-                --local link = GetMerchantItemLink(a)
-
-                order.itemID = itemID;
-
-            elseif infoType == "item" then
-                --a=itemID b=itemLink
-
-                order.itemID = a
+            if self.content.merchant.dropFrame:IsMouseOver() then
+                local order = {
+                    minStock = 1,
+                    autoPurchase = true,
+                }
+                local infoType, a, b = GetCursorInfo()
+                if infoType == "merchant" then
+                    --a=merchantIndex
+                    local itemID = GetMerchantItemID(a)
+                    --local link = GetMerchantItemLink(a)
+                    order.itemID = itemID;
+                elseif infoType == "item" then
+                    --a=itemID b=itemLink
+                    order.itemID = a
+                end
+                if order.itemID then
+                    local thisCharacterProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
+                    Database:AddMerchantOrder(thisCharacterProfile, order)
+                end
+                ClearCursor()
             end
-
-            if order.itemID then
-                local thisCharacterProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
-                Database:AddMerchantOrder(thisCharacterProfile, order)
-            end
-
-            ClearCursor()
         end
     end)
 

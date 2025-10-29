@@ -371,7 +371,19 @@ end
 
 VendorMateVendorGridviewItemMixin = {}
 
+function VendorMateVendorGridviewItemMixin:UpdateState(state)
+    if state == "mail-show" then
+        self.vendorItems:GetNormalTexture():SetAtlas("Mailbox")
+    end
+    if state == "vendor-show" then
+        self.vendorItems:GetNormalTexture():SetAtlas("Banker")
+    end
+end
+
 function VendorMateVendorGridviewItemMixin:OnLoad()
+
+    vm:RegisterCallback("Mailbox_OnShow", self.UpdateState, self)
+    vm:RegisterCallback("Merchant_OnShow", self.UpdateState, self)
 
     self.itemsLocked = true;
 
@@ -411,13 +423,6 @@ function VendorMateVendorGridviewItemMixin:OnLoad()
     end)
     self.vendorItems:SetScript("OnClick", function()
         StaticPopup_Show("VendorMateDialogVendorItemsConfirm", self.filter.name, string.format("%s - %s", self.itemCount:GetText() or "-", self.vendorValue:GetText() or "-"), self.items)
-    end)
-
-    SendMailFrame:HookScript("OnShow", function()
-        self.vendorItems:GetNormalTexture():SetAtlas("UI-HUD-Minimap-Mail-Up")
-    end)
-    SendMailFrame:HookScript("OnHide", function()
-        self.vendorItems:GetNormalTexture():SetAtlas("Banker")
     end)
 
     self.lockUnlockItems:SetScript("OnEnter", function()

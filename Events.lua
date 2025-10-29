@@ -32,6 +32,9 @@ vm:GenerateCallbackEvents({
     "Merchant_OnShow",
     "Merchant_OnHide",
 
+    "Mail_OnShow",
+    "Mail_OnHide",
+
     "Vendor_OnTransactionStart",
     "Vendor_OnTransactionFinish",
 
@@ -86,15 +89,21 @@ function f:MERCHANT_HIDE(...)
     vm:TriggerEvent("Merchant_OnHide")
 end
 
-function f:PLAYER_INTERACTION_MANAGER_FRAME_SHOW(...)
-    if ... == Enum.PlayerInteractionType.Merchant then
-        vm:TriggerEvent("Merchant_OnShow")
+function f:PLAYER_INTERACTION_MANAGER_FRAME_SHOW(id)
+    if id == Enum.PlayerInteractionType.Merchant then
+        vm:TriggerEvent("Merchant_OnShow", "vendor-show")
+    end
+    if id == Enum.PlayerInteractionType.MailInfo then
+        vm:TriggerEvent("Mailbox_OnShow", "mail-show")
     end
 end
 
-function f:PLAYER_INTERACTION_MANAGER_FRAME_HIDE(...)
-    if ... == Enum.PlayerInteractionType.Merchant then
-        vm:TriggerEvent("Merchant_OnHide")
+function f:PLAYER_INTERACTION_MANAGER_FRAME_HIDE(id)
+    if id == Enum.PlayerInteractionType.Merchant then
+        vm:TriggerEvent("Merchant_OnHide", "vendor-hide")
+    end
+    if id == Enum.PlayerInteractionType.MailInfo then
+        vm:TriggerEvent("Mailbox_OnHide", "mail-hide")
     end
 end
 
