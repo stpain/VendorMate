@@ -57,6 +57,11 @@
                 </Texture>
             </Layer> -->
         </Layers>
+        <Scripts>
+            <OnLoad method="OnLoad"/>
+            <OnEnter method="OnEnter"/>
+            <OnLeave method="OnLeave"/>
+        </Scripts>
     </Frame>
 
     <Frame name="VendorMateHistoryListviewItemTemplate" mixin="VendorMateHistoryListviewItemTemplateMixin" enableMouse="true" virtual="true">

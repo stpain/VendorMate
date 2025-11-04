@@ -1118,17 +1118,19 @@ function VendorMateMixin:CheckMerchantOrders()
     --GetMerchantItemMaxStack(index)
     --BuyMerchantItem(index[, quantity])
 
-    local merchantItems, itemID, maxStack = {}, nil, nil
+    local merchantItems, itemID, maxStack, itemLink = {}, nil, nil, nil
     for i = 1, GetMerchantNumItems() do
         itemID = GetMerchantItemID(i)
+        itemLink = GetMerchantItemLink(i)
         maxStack = GetMerchantItemMaxStack(i)
         merchantItems[itemID] = {
             slotIndex = i,
+            itemLink = itemLink,
             maxStack = maxStack,
         }
     end
 
-    print("MERCHANT ORDERS........")
+    --print("MERCHANT ORDERS........")
 
     local thisCharacterProfile = Database:GetProfile(string.format("%s.%s.%s", self.character.name, self.character.realm, CHAT_DEFAULT))
     if thisCharacterProfile and thisCharacterProfile.merchant then
@@ -1137,10 +1139,10 @@ function VendorMateMixin:CheckMerchantOrders()
             if merchantItems[order.itemID] then
                 local currentStock = C_Item.GetItemCount(order.itemID)
                 if currentStock < order.minStock then
-                    print("Need to purchase", order.minStock - currentStock)
-
+                    print(string.format("VendorMate: Buying %d %s", (order.minStock - currentStock), merchantItems[order.itemID].itemLink))
+                    BuyMerchantItem(merchantItems[order.itemID].slotIndex, (order.minStock - currentStock))
                 else
-                    print("Have enough in stock")
+                    --print("Have enough in stock")
                 end
             end
         end

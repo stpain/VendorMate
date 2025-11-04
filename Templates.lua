@@ -548,8 +548,19 @@ VendorMateMerchantOrderListviewItemMixin = {}
 function VendorMateMerchantOrderListviewItemMixin:OnLoad()
     
 end
-function VendorMateMerchantOrderListviewItemMixin:SetDataBinding(binding, height)   
+function VendorMateMerchantOrderListviewItemMixin:OnEnter()
+    if self.itemID then
+            GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
+            GameTooltip:SetItemByID(self.itemID)
+            GameTooltip:Show()
+    end
+end
+function VendorMateMerchantOrderListviewItemMixin:OnLeave()
+    GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+end
+function VendorMateMerchantOrderListviewItemMixin:SetDataBinding(binding, height)
     if binding.itemID then
+        self.itemID = binding.itemID;
         local item = Item:CreateFromItemID(binding.itemID)
         if item and (not item:IsItemEmpty()) then
             item:ContinueOnItemLoad(function()
@@ -577,5 +588,5 @@ function VendorMateMerchantOrderListviewItemMixin:SetDataBinding(binding, height
     end
 end
 function VendorMateMerchantOrderListviewItemMixin:ResetDataBinding()
-    
+    self.itemID = nil
 end

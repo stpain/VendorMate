@@ -1,5 +1,5 @@
 ## Name: VendorMate
-## Version: 2.11
+## Version: 2.2
 ## Interface: 110205
 ## Notes: Vendor friend for your WoW adventures 
 ## SavedVariables: VendorMateAccount
