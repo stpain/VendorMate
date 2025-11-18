@@ -1,8 +1,9 @@
 ## Name: VendorMate
-## Version: 2.2
+## Version: 3.0
 ## Interface: 110205
 ## Notes: Vendor friend for your WoW adventures 
 ## SavedVariables: VendorMateAccount
+## Dependencies: TbdWidgets
 
 Locales.lua
 Locales_ruRU.lua

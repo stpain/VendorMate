@@ -1067,7 +1067,7 @@ function VendorMateMixin:SetupMerchantTab()
     self.content.merchant.dropFrame:RegisterEvent("GLOBAL_MOUSE_UP")
     self.content.merchant.dropFrame:SetScript("OnEvent", function(s, e, ...)
         if e == "GLOBAL_MOUSE_UP" then
-            if self.content.merchant.dropFrame:IsMouseOver() then
+            if self.content.merchant.dropFrame:IsMouseOver() and self.content.merchant.dropFrame:IsVisible() then
                 local order = {
                     minStock = 1,
                     autoPurchase = true,
